@@ -1,0 +1,14 @@
+services:
+  # Web Service for Random Chat Backend
+  - type: web
+    name: random-chat
+    runtime: node
+    region: oregon  # Choose: oregon, frankfurt, singapore, ohio
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+    # Auto-deploy on git push
+    autoDeploy: true
