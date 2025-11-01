@@ -1,4 +1,4 @@
-# 🎯 Quick Start: Deploy to Render.com
+# 🎯 Quick Start: Deploy Sulyap to Render.com
 
 ## 3 Simple Steps to Deploy (10 minutes)
 
@@ -8,7 +8,7 @@
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  1. Create new repo on GitHub.com                           │
-│     → Repository name: "random-chat"                        │
+│     → Repository name: "sulyap"                             │
 │     → Public or Private                                     │
 │                                                              │
 │  2. Run these commands:                                     │

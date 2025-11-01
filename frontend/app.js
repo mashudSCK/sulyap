@@ -126,4 +126,4 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-console.log('Random Chat initialized');
+console.log('🌟 Sulyap initialized - Fleeting conversations await');

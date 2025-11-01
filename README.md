@@ -1,6 +1,8 @@
-# Random Chat - Anonymous Real-Time Chat Application
+# Sulyap - Anonymous Fleeting Conversations
 
-A modern, privacy-friendly random chat web application where users can connect anonymously with strangers for text-based conversations. Built with Node.js, Express, Socket.IO, and vanilla JavaScript.
+**Sulyap** (Filipino for "glance" or "fleeting look") - A privacy-focused chat application for brief, anonymous encounters with strangers. Connect, exchange messages, then let go. Like a momentary glance, conversations disappear without a trace.
+
+Built with Node.js, Express, Socket.IO, and vanilla JavaScript.
 
 ## ✨ Features
 
@@ -11,6 +13,14 @@ A modern, privacy-friendly random chat web application where users can connect a
 - 📱 **Mobile-First Design**: Fully responsive across all devices
 - ⚡ **Lightweight**: Minimal dependencies, fast performance
 - 🎨 **Clean UI**: Minimalist design with smooth animations
+
+## ✨ What is Sulyap?
+
+**Sulyap** represents the fleeting nature of anonymous connections:
+- 🌟 **Brief Encounters** - Connect with a stranger for a momentary conversation
+- 👻 **No Traces** - Messages disappear when the chat ends
+- 🔒 **Complete Anonymity** - No registration, no data stored
+- 💨 **Ephemeral** - Like a glance that fades away
 
 ## 🚀 Quick Start (Local Development)
 
@@ -54,8 +64,8 @@ A modern, privacy-friendly random chat web application where users can connect a
    ```bash
    git init
    git add .
-   git commit -m "Initial commit"
-   git remote add origin https://github.com/YOUR_USERNAME/random-chat.git
+   git commit -m "Initial commit - Sulyap chat app"
+   git remote add origin https://github.com/YOUR_USERNAME/sulyap.git
    git push -u origin main
    ```
 
@@ -78,7 +88,7 @@ Use [UptimeRobot](https://uptimerobot.com) (free) to ping your app every 5 minut
 ## 📁 Project Structure
 
 ```
-random-chat/
+sulyap/
 ├── backend/
 │   ├── server.js           # Main server file with Socket.IO logic
 │   ├── package.json        # Backend dependencies

@@ -1,7 +1,7 @@
 {
-  "name": "random-chat-backend",
+  "name": "sulyap-backend",
   "version": "1.0.0",
-  "description": "Anonymous random chat application backend with Socket.IO",
+  "description": "Sulyap - Fleeting anonymous chat application backend with Socket.IO",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -1,7 +1,7 @@
 services:
-  # Web Service for Random Chat Backend
+  # Web Service for Sulyap Backend
   - type: web
-    name: random-chat
+    name: sulyap
     runtime: node
     region: oregon  # Choose: oregon, frankfurt, singapore, ohio
     plan: free

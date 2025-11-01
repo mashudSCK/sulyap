@@ -71,5 +71,6 @@ function handleDisconnection(socket) {
 }
 
 server.listen(PORT, () => {
-  console.log('Server running on port ' + PORT);
+  console.log('\n🌟 Sulyap Server running on http://localhost:' + PORT);
+  console.log('💬 Fleeting conversations, momentary connections\n');
 });

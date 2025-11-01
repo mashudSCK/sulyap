@@ -1,6 +1,6 @@
 # 🚀 Deployment Checklist for Render.com
 
-Use this checklist to deploy your Random Chat app to Render.com in under 10 minutes!
+Use this checklist to deploy your Sulyap app to Render.com in under 10 minutes!
 
 ---
 
@@ -36,12 +36,12 @@ git add .
 git commit -m "Initial commit - Random Chat App"
 
 # 4. Create repo on GitHub.com (New Repository)
-#    Repository name: random-chat
+#    Repository name: sulyap
 #    Public or Private: Your choice
 #    Don't initialize with README
 
 # 5. Link and push
-git remote add origin https://github.com/YOUR_USERNAME/random-chat.git
+git remote add origin https://github.com/YOUR_USERNAME/sulyap.git
 git branch -M main
 git push -u origin main
 ```
