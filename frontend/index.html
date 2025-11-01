@@ -22,6 +22,24 @@
             <h1 class="title">Sulyap</h1>
             <p class="subtitle">Fleeting conversations with strangers. A brief glance, then it's gone. No registration, no traces.</p>
             
+            <!-- Online Users Counter -->
+            <div class="online-counter">
+                <span class="online-dot"></span>
+                <span id="online-count">0</span> <span class="online-text">users online</span>
+            </div>
+            
+            <!-- Temporary Username Input -->
+            <div class="username-container">
+                <input 
+                    type="text" 
+                    id="username-input" 
+                    class="username-input" 
+                    placeholder="Enter a name (optional)"
+                    maxlength="20"
+                >
+                <p class="username-hint">✨ Or stay anonymous as "Stranger"</p>
+            </div>
+            
             <button id="start-btn" class="btn btn-primary">
                 <span>Start Chatting</span>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -64,9 +82,15 @@
             <!-- Chat Header -->
             <div class="chat-header">
                 <div class="header-content">
-                    <div class="status-indicator">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Connected</span>
+                    <div class="chat-names">
+                        <div class="status-indicator">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Connected</span>
+                        </div>
+                        <div class="name-display">
+                            <span id="your-name-text" class="chatting-with-text">You are chatting with Stranger</span>
+                            <span id="partner-name-text" style="display: none;"></span>
+                        </div>
                     </div>
                     <button id="end-chat-btn" class="btn-icon" title="End Chat">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -81,6 +105,16 @@
                 <div class="system-message">
                     <p>🎉 You're now connected! Start the conversation.</p>
                 </div>
+            </div>
+            
+            <!-- Typing Indicator -->
+            <div id="typing-indicator" class="typing-indicator" style="display: none;">
+                <span class="typing-text">Partner is typing</span>
+                <span class="typing-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </span>
             </div>
 
             <!-- Input Area -->
@@ -116,6 +150,28 @@
             <h2 class="status-title">Chat Ended</h2>
             <p class="status-message" id="disconnect-message">Your partner left the chat.</p>
             <button id="new-chat-btn" class="btn btn-primary">Start New Chat</button>
+        </div>
+    </div>
+
+    <!-- Exit Confirmation Modal -->
+    <div id="exit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-character">
+                <div class="sad-face">
+                    <div class="eyes">
+                        <span class="eye">•́</span>
+                        <span class="eye">•̀</span>
+                    </div>
+                    <div class="mouth">⌓</div>
+                </div>
+                <p class="modal-message">Aalis ka na?</p>
+            </div>
+            <h3 class="modal-title">End this Sulyap?</h3>
+            <p class="modal-subtitle">Your conversation will disappear forever...</p>
+            <div class="modal-buttons">
+                <button id="modal-stay-btn" class="btn btn-secondary">Stay</button>
+                <button id="modal-end-btn" class="btn btn-danger">End Chat</button>
+            </div>
         </div>
     </div>
 

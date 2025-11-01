@@ -15,7 +15,18 @@ const messageInput = document.getElementById('message-input');
 const messagesContainer = document.getElementById('messages-container');
 const disconnectMessage = document.getElementById('disconnect-message');
 
+// New elements
+const usernameInput = document.getElementById('username-input');
+const onlineCountElement = document.getElementById('online-count');
+const typingIndicator = document.getElementById('typing-indicator');
+const yourNameText = document.getElementById('your-name-text');
+const partnerNameText = document.getElementById('partner-name-text');
+const exitModal = document.getElementById('exit-modal');
+const modalStayBtn = document.getElementById('modal-stay-btn');
+const modalEndBtn = document.getElementById('modal-end-btn');
+
 let isInChat = false;
+let typingTimeout = null;
 
 function showScreen(screen) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -49,7 +60,8 @@ function clearMessages() {
 }
 
 startBtn.addEventListener('click', () => {
-  socket.emit('start-chat');
+  const username = usernameInput.value.trim() || 'Stranger';
+  socket.emit('start-chat', { username });
   showScreen(waitingScreen);
 });
 
@@ -59,16 +71,25 @@ cancelWaitingBtn.addEventListener('click', () => {
 });
 
 endChatBtn.addEventListener('click', () => {
-  if (confirm('Are you sure you want to end this chat?')) {
-    socket.emit('end-chat');
-    isInChat = false;
-    disconnectMessage.textContent = 'You ended the chat.';
-    showScreen(disconnectedScreen);
-  }
+  showExitModal();
+});
+
+modalStayBtn.addEventListener('click', () => {
+  hideExitModal();
+});
+
+modalEndBtn.addEventListener('click', () => {
+  hideExitModal();
+  socket.emit('end-chat');
+  isInChat = false;
+  disconnectMessage.textContent = 'You ended the chat.';
+  showScreen(disconnectedScreen);
+  clearUsername();
 });
 
 newChatBtn.addEventListener('click', () => {
-  socket.emit('start-chat');
+  const username = usernameInput.value.trim() || 'Stranger';
+  socket.emit('start-chat', { username });
   showScreen(waitingScreen);
 });
 
@@ -80,7 +101,21 @@ messageForm.addEventListener('submit', (e) => {
     socket.emit('send-message', { message });
     messageInput.value = '';
     messageInput.focus();
+    socket.emit('stop-typing');
   }
+});
+
+// Typing indicator
+let typingTimer;
+messageInput.addEventListener('input', () => {
+  if (!isInChat) return;
+  
+  socket.emit('typing');
+  
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => {
+    socket.emit('stop-typing');
+  }, 1000);
 });
 
 socket.on('waiting', (data) => {
@@ -90,8 +125,11 @@ socket.on('waiting', (data) => {
 socket.on('chat-start', (data) => {
   isInChat = true;
   clearMessages();
-  addSystemMessage(data.message);
   showScreen(chatScreen);
+  
+  // Update header with partner's name
+  yourNameText.textContent = `You are chatting with ${data.partnerName}`;
+  partnerNameText.style.display = 'none'; // Hide the partner name element
 });
 
 socket.on('receive-message', (data) => {
@@ -104,6 +142,25 @@ socket.on('partner-left', (data) => {
   isInChat = false;
   disconnectMessage.textContent = data.message;
   showScreen(disconnectedScreen);
+  clearUsername();
+});
+
+// Online count
+socket.on('online-count', (data) => {
+  onlineCountElement.textContent = data.count;
+});
+
+// Typing indicators
+socket.on('partner-typing', () => {
+  if (typingIndicator) {
+    typingIndicator.style.display = 'block';
+  }
+});
+
+socket.on('partner-stop-typing', () => {
+  if (typingIndicator) {
+    typingIndicator.style.display = 'none';
+  }
 });
 
 socket.on('connect_error', (error) => {
@@ -115,6 +172,28 @@ socket.on('disconnect', (reason) => {
     isInChat = false;
     disconnectMessage.textContent = 'Connection lost. Please check your internet.';
     showScreen(disconnectedScreen);
+    clearUsername();
+  }
+});
+
+// Modal functions
+function showExitModal() {
+  exitModal.classList.add('active');
+}
+
+function hideExitModal() {
+  exitModal.classList.remove('active');
+}
+
+function clearUsername() {
+  yourNameText.textContent = 'Stranger';
+  partnerNameText.textContent = 'Stranger';
+}
+
+// Close modal on outside click
+exitModal.addEventListener('click', (e) => {
+  if (e.target === exitModal) {
+    hideExitModal();
   }
 });
 

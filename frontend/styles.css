@@ -72,7 +72,68 @@ body {
 .subtitle {
   font-size: 1rem;
   color: var(--text-secondary);
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
+}
+
+.online-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.online-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--success);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.online-text {
+  color: var(--text-secondary);
+}
+
+#online-count {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.username-container {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto 2rem;
+}
+
+.username-input {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  border: 2px solid var(--border);
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-family: inherit;
+  text-align: center;
+  transition: all 0.3s;
+  background: var(--surface);
+}
+
+.username-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.username-hint {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
 }
 
 .btn {
@@ -186,6 +247,34 @@ body {
   align-items: center;
 }
 
+.chat-names {
+  flex: 1;
+}
+
+.name-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.chatting-with-text {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.name-separator {
+  color: var(--border);
+}
+
+.your-name strong,
+.partner-name strong {
+  color: var(--primary);
+}
+
 .status-indicator {
   display: flex;
   align-items: center;
@@ -289,6 +378,45 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
+.typing-indicator {
+  padding: 0.75rem 1.5rem;
+  background: var(--background);
+  animation: fadeIn 0.3s ease;
+}
+
+.typing-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-right: 0.5rem;
+}
+
+.typing-dots {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.typing-dots .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  display: inline-block;
+  animation: typingBounce 1.4s infinite;
+}
+
+.typing-dots .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-8px); }
+}
+
 .input-container {
   background: var(--surface);
   border-top: 1px solid var(--border);
@@ -336,6 +464,120 @@ body {
 .btn-send:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--surface);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-character {
+  margin-bottom: 1.5rem;
+}
+
+.sad-face {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+  animation: sadFace 2s ease-in-out infinite;
+}
+
+@keyframes sadFace {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.sad-face .eyes {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.sad-face .eye {
+  font-size: 2rem;
+  color: var(--text-primary);
+}
+
+.sad-face .mouth {
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.modal-message {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.modal-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.modal-buttons .btn {
+  flex: 1;
+  max-width: 150px;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #DC2626;
+  transform: translateY(-2px);
 }
 
 @media (min-width: 768px) {
