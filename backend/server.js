@@ -13,18 +13,38 @@ const waitingQueue = [];
 const activePairs = new Map();
 const PORT = process.env.PORT || 3000;
 
+// Broadcast online user count to all clients
+function broadcastOnlineCount() {
+  const onlineCount = io.engine.clientsCount;
+  io.emit('online-count', { count: onlineCount });
+}
+
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
+  
+  // Send current online count to new user and broadcast to all
+  broadcastOnlineCount();
 
-  socket.on('start-chat', () => {
+  socket.on('start-chat', (data) => {
+    const username = data?.username || 'Stranger';
+    socket.username = username;
+    
     if (waitingQueue.length > 0) {
       const partnerId = waitingQueue.shift();
       const partnerSocket = io.sockets.sockets.get(partnerId);
       if (partnerSocket) {
         activePairs.set(socket.id, partnerId);
         activePairs.set(partnerId, socket.id);
-        socket.emit('chat-start', { message: 'Connected!' });
-        partnerSocket.emit('chat-start', { message: 'Connected!' });
+        socket.emit('chat-start', { 
+          message: 'Connected!', 
+          yourName: socket.username,
+          partnerName: partnerSocket.username 
+        });
+        partnerSocket.emit('chat-start', { 
+          message: 'Connected!',
+          yourName: partnerSocket.username,
+          partnerName: socket.username
+        });
       } else {
         waitingQueue.push(socket.id);
         socket.emit('waiting', { message: 'Waiting...' });
@@ -40,7 +60,31 @@ io.on('connection', (socket) => {
     if (partnerId) {
       const partnerSocket = io.sockets.sockets.get(partnerId);
       if (partnerSocket) {
-        partnerSocket.emit('receive-message', { message: data.message });
+        partnerSocket.emit('receive-message', { 
+          message: data.message,
+          senderName: socket.username 
+        });
+      }
+    }
+  });
+
+  // Typing indicator
+  socket.on('typing', () => {
+    const partnerId = activePairs.get(socket.id);
+    if (partnerId) {
+      const partnerSocket = io.sockets.sockets.get(partnerId);
+      if (partnerSocket) {
+        partnerSocket.emit('partner-typing');
+      }
+    }
+  });
+
+  socket.on('stop-typing', () => {
+    const partnerId = activePairs.get(socket.id);
+    if (partnerId) {
+      const partnerSocket = io.sockets.sockets.get(partnerId);
+      if (partnerSocket) {
+        partnerSocket.emit('partner-stop-typing');
       }
     }
   });
@@ -51,6 +95,8 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     handleDisconnection(socket);
+    // Broadcast updated online count
+    broadcastOnlineCount();
   });
 });
 
