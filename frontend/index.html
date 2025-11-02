@@ -79,17 +79,27 @@
     <!-- Chat Screen -->
     <div id="chat-screen" class="screen">
         <div class="chat-container">
-            <!-- Chat Header -->
-            <div class="chat-header">
+            <!-- Fixed Chat Header -->
+            <div class="chat-header fixed-header">
                 <div class="header-content">
-                    <div class="chat-names">
-                        <div class="status-indicator">
-                            <span class="status-dot"></span>
-                            <span class="status-text">Connected</span>
+                    <div class="header-left">
+                        <div class="logo-small">
+                            <svg width="32" height="32" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="5" y="15" width="25" height="30" rx="4" stroke="#6366F1" stroke-width="3" fill="none"/>
+                                <rect x="30" y="15" width="25" height="30" rx="4" stroke="#8B5CF6" stroke-width="3" fill="none"/>
+                                <circle cx="15" cy="25" r="2" fill="#6366F1"/>
+                                <circle cx="40" cy="25" r="2" fill="#8B5CF6"/>
+                            </svg>
                         </div>
-                        <div class="name-display">
-                            <span id="your-name-text" class="chatting-with-text">You are chatting with Stranger</span>
-                            <span id="partner-name-text" style="display: none;"></span>
+                        <div class="chat-names">
+                            <div class="status-indicator">
+                                <span class="status-dot"></span>
+                                <span class="status-text">Connected</span>
+                            </div>
+                            <div class="name-display">
+                                <span id="your-name-text" class="chatting-with-text">You are chatting with Stranger</span>
+                                <span id="partner-name-text" style="display: none;"></span>
+                            </div>
                         </div>
                     </div>
                     <button id="end-chat-btn" class="btn-icon" title="End Chat">
@@ -109,7 +119,7 @@
             
             <!-- Typing Indicator -->
             <div id="typing-indicator" class="typing-indicator" style="display: none;">
-                <span class="typing-text">Partner is typing</span>
+                <span class="typing-text">Typing</span>
                 <span class="typing-dots">
                     <span class="dot"></span>
                     <span class="dot"></span>
@@ -119,6 +129,26 @@
 
             <!-- Input Area -->
             <div class="input-container">
+                <!-- Reply Preview -->
+                <div id="reply-preview" class="reply-preview" style="display: none;">
+                    <div class="reply-preview-content">
+                        <div class="reply-icon">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M3.5 8H12.5M3.5 8L7 4.5M3.5 8L7 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="reply-text">
+                            <div id="reply-label" class="reply-label">Replying to</div>
+                            <div id="reply-message-text" class="reply-message-text"></div>
+                        </div>
+                    </div>
+                    <button id="cancel-reply-btn" class="cancel-reply-btn" title="Cancel reply">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+                
                 <form id="message-form" class="message-form">
                     <input 
                         type="text" 
@@ -149,7 +179,41 @@
             </div>
             <h2 class="status-title">Chat Ended</h2>
             <p class="status-message" id="disconnect-message">Your partner left the chat.</p>
-            <button id="new-chat-btn" class="btn btn-primary">Start New Chat</button>
+            
+            <!-- Referral Share Section -->
+            <div class="referral-section">
+                <h3 class="referral-title">💬 Enjoyed your Sulyap?</h3>
+                <p class="referral-subtitle">Invite a friend to try it too!</p>
+                <div class="referral-link-container">
+                    <input type="text" id="referral-link-input" class="referral-link-input" readonly value="https://sulyap.onrender.com">
+                    <button id="copy-link-btn" class="btn-copy" title="Copy link">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <rect x="6" y="6" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M12 6V4C12 2.89543 11.1046 2 10 2H4C2.89543 2 2 2.89543 2 4V10C2 11.1046 2.89543 12 4 12H6" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="share-buttons">
+                    <button class="share-btn facebook" title="Share on Facebook">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                    </button>
+                    <button class="share-btn messenger" title="Share on Messenger">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.373 0 0 5.084 0 11.667c0 3.467 1.4 6.639 3.733 8.933v3.4l3.267-1.8c.867.233 1.8.4 2.733.4 6.627 0 12-5.084 12-11.667C24 5.084 18.627 0 12 0zm1.2 15.667l-3.067-3.267-6 3.267 6.6-7 3.134 3.267 5.933-3.267-6.6 7z"/>
+                        </svg>
+                    </button>
+                    <button class="share-btn twitter" title="Share on Twitter">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <button id="new-chat-btn" class="btn btn-primary" aria-label="Start a new chat conversation">Start New Chat</button>
+            <button id="feedback-btn" class="btn btn-secondary" aria-label="Provide feedback about your experience">Give Feedback</button>
         </div>
     </div>
 
@@ -174,6 +238,63 @@
             </div>
         </div>
     </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="modal">
+        <div class="modal-content feedback-modal-content">
+            <button class="modal-close-btn" id="close-feedback-btn" title="Close">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <h3 class="modal-title">💭 Share Your Sulyap</h3>
+            <p class="modal-subtitle">Help us improve your experience</p>
+            
+            <div class="rating-section">
+                <p class="rating-label">How was your experience?</p>
+                <div class="star-rating" id="star-rating">
+                    <span class="star" data-rating="1">⭐</span>
+                    <span class="star" data-rating="2">⭐</span>
+                    <span class="star" data-rating="3">⭐</span>
+                    <span class="star" data-rating="4">⭐</span>
+                    <span class="star" data-rating="5">⭐</span>
+                </div>
+            </div>
+            
+            <div class="feedback-form">
+                <textarea 
+                    id="feedback-text" 
+                    class="feedback-textarea" 
+                    placeholder="Tell us your thoughts... (optional)"
+                    maxlength="500"
+                    rows="4"
+                ></textarea>
+                <div class="char-count">
+                    <span id="char-count">0</span>/500
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="submit-feedback-btn" class="btn btn-primary">Submit Feedback</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Thank You Modal -->
+    <div id="thankyou-modal" class="modal">
+        <div class="modal-content thankyou-modal-content">
+            <div class="thankyou-animation">
+                <div class="heart-emoji">💖</div>
+            </div>
+            <h3 class="modal-title">Salamat sa iyong Sulyap!</h3>
+            <p class="modal-subtitle">Your feedback helps improve our experience</p>
+        </div>
+    </div>
+
+    <!-- Audio element for notification sound - Matched-Notify.wav -->
+    <audio id="notification-sound" preload="auto">
+        <source src="assets/sounds/Matched-Notify.wav" type="audio/wav">
+    </audio>
 
     <!-- Socket.IO Client Library -->
     <script src="/socket.io/socket.io.js"></script>

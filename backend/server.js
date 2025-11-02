@@ -2,16 +2,24 @@ const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
 app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.json());
 
 const waitingQueue = [];
 const activePairs = new Map();
 const PORT = process.env.PORT || 3000;
+
+// NEW: Feedback storage directory
+const feedbackDir = path.join(__dirname, 'feedback');
+if (!fs.existsSync(feedbackDir)) {
+  fs.mkdirSync(feedbackDir, { recursive: true });
+}
 
 // Broadcast online user count to all clients
 function broadcastOnlineCount() {
@@ -60,9 +68,11 @@ io.on('connection', (socket) => {
     if (partnerId) {
       const partnerSocket = io.sockets.sockets.get(partnerId);
       if (partnerSocket) {
+        // Forward message with reply data if present
         partnerSocket.emit('receive-message', { 
           message: data.message,
-          senderName: socket.username 
+          senderName: socket.username,
+          replyTo: data.replyTo || null // Include reply metadata
         });
       }
     }
@@ -87,6 +97,28 @@ io.on('connection', (socket) => {
         partnerSocket.emit('partner-stop-typing');
       }
     }
+  });
+
+  // NEW: Handle feedback submission
+  socket.on('submit-feedback', (data) => {
+    console.log('📝 Feedback received:', {
+      rating: data.rating,
+      hasComment: !!data.comment,
+      referral: data.referralCode || 'none'
+    });
+    
+    // Save feedback to file
+    const feedbackFile = path.join(feedbackDir, `feedback-${Date.now()}.json`);
+    fs.writeFile(feedbackFile, JSON.stringify(data, null, 2), (err) => {
+      if (err) {
+        console.error('Error saving feedback:', err);
+      } else {
+        console.log('✅ Feedback saved successfully');
+      }
+    });
+    
+    // Acknowledge receipt
+    socket.emit('feedback-received', { success: true });
   });
 
   socket.on('end-chat', () => {
@@ -118,5 +150,8 @@ function handleDisconnection(socket) {
 
 server.listen(PORT, () => {
   console.log('\n🌟 Sulyap Server running on http://localhost:' + PORT);
-  console.log('💬 Fleeting conversations, momentary connections\n');
+  console.log('💬 Fleeting conversations, momentary connections');
+  console.log('✨ New features enabled: Fixed Header, Reply, Notifications, Referrals, Feedback');
+  console.log('📁 Feedback directory:', feedbackDir);
+  console.log('');
 });
