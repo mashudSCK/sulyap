@@ -233,7 +233,6 @@ Test on local network:
 - [ ] Video/audio chat support
 - [ ] Interest-based matching
 - [ ] Language preferences
-- [ ] Typing indicators
 - [ ] Message reactions/emojis
 - [ ] Dark mode toggle
 - [ ] Mobile app (React Native)
