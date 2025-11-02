@@ -1,7 +1,7 @@
 {
   "name": "sulyap-backend",
-  "version": "1.0.0",
-  "description": "Sulyap - Fleeting anonymous chat application backend with Socket.IO",
+  "version": "2.0.0",
+  "description": "Sulyap - Fleeting anonymous chat backend with Socket.IO, real-time admin API, feedback system, and referral tracking",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -12,11 +12,16 @@
     "socket.io",
     "websocket",
     "anonymous",
-    "random"
+    "random",
+    "admin-dashboard",
+    "real-time",
+    "analytics",
+    "filipino"
   ],
-  "author": "",
+  "author": "mashudSCK",
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.18.2",
     "socket.io": "^4.6.1"
   },

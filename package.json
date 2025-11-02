@@ -1,0 +1,22 @@
+{
+  "name": "sulyap",
+  "version": "1.0.0",
+  "description": "Sulyap - Anonymous Chat Platform",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "admin-dashboard"
+  ],
+  "scripts": {
+    "start": "npm run start --workspace=backend",
+    "dev": "npm run dev --workspace=admin-dashboard",
+    "install-all": "npm install --workspaces"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mashudSCK/sulyap.git"
+  },
+  "author": "mashudSCK",
+  "license": "MIT"
+}
