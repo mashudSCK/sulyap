@@ -336,9 +336,6 @@ Connection Status:
 🔴 Disconnected (Red X + "Chat Ended")
 ⏳ Waiting      (Spinner + "Finding...")
 
-Typing Indicator:
-Partner is typing...
-● ● ● (bouncing dots)
 
 Reply State:
 ↩️ Replying to "..." [X cancel]

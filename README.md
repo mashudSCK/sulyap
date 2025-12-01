@@ -6,13 +6,32 @@ Built with Node.js, Express, Socket.IO, and vanilla JavaScript.
 
 ## ✨ Features
 
+### Core Features
 - 🎲 **Random Pairing**: Automatically matches users with random chat partners
 - 🔒 **100% Anonymous**: No registration, authentication, or personal data required
 - 💬 **Real-Time Messaging**: Instant message delivery using WebSocket technology
 - 🗑️ **Zero Data Retention**: All conversations deleted immediately when chat ends
 - 📱 **Mobile-First Design**: Fully responsive across all devices
-- ⚡ **Lightweight**: Minimal dependencies, fast performance
-- 🎨 **Clean UI**: Minimalist design with smooth animations
+- ⚡ **Lightweight**: Fast performance with minimal dependencies
+- 🎨 **Clean UI**: Minimalist Filipino-inspired design with smooth animations
+
+### Advanced Features
+- 📌 **Fixed Chat Header**: Profile info stays visible while scrolling messages
+- ↩️ **Reply to Messages**: Click any message to reply with context
+- 🔔 **Browser Notifications**: Get notified when partner sends messages (with permission)
+- 🔗 **Referral System**: Share your unique referral link and track engagement
+- 📝 **Feedback System**: Rate your experience and leave comments
+- 👤 **Custom Usernames**: Choose your display name before chatting
+- 👁️ **Online User Counter**: See how many people are currently active
+
+### Admin Dashboard (NEW!)
+- 📊 **Real-Time Analytics**: Live monitoring of user activity and engagement
+- 📈 **Dynamic Charts**: Activity graphs, message volume, session distribution
+- 💬 **Feedback Management**: View, pin, mark as read, and export user feedback
+- 🔴 **Live Indicators**: Real-time connection status with auto-reconnection
+- 📉 **System Health Monitoring**: Server uptime, memory usage, error logs
+- 🎯 **Zero Fake Data**: All metrics based on actual user activity
+- 🌐 **Responsive Design**: Works perfectly on desktop, tablet, and mobile
 
 ## ✨ What is Sulyap?
 
@@ -52,7 +71,40 @@ Built with Node.js, Express, Socket.IO, and vanilla JavaScript.
    ```
 
 4. **Open your browser**:
-   Navigate to `http://localhost:3000`
+   Navigate to `http://localhost:3000` for the chat app
+   
+5. **Start Admin Dashboard** (optional):
+   ```bash
+   cd admin-dashboard
+   npm install
+   npm run dev
+   ```
+   Navigate to `http://localhost:3001` and login with:
+   - Username: `admin`
+   - Password: `admin123`
+
+## 🎯 Admin Dashboard
+
+Access the real-time monitoring dashboard at `http://localhost:3001`
+
+### Features:
+- **Live Metrics**: Online users, active chats, messages, session duration
+- **Real-Time Charts**: User activity, message volume, session distribution
+- **Auto-Updates**: All data refreshes automatically via WebSocket
+- **Feedback Management**: View, filter, pin, export user feedback
+- **System Monitoring**: Server health, logs, error tracking
+- **Dark Mode**: Toggle between light and dark themes
+- **Connection Status**: Live indicator with auto-reconnection
+
+### Default Credentials:
+- Username: `admin`
+- Password: `admin123`
+
+**Change these in production!** Set environment variables:
+```bash
+ADMIN_USERNAME=your_username
+ADMIN_PASSWORD=your_secure_password
+```
 
 ## 🌐 Deploy to Render.com (FREE)
 
@@ -90,17 +142,43 @@ Use [UptimeRobot](https://uptimerobot.com) (free) to ping your app every 5 minut
 ```
 sulyap/
 ├── backend/
-│   ├── server.js           # Main server file with Socket.IO logic
+│   ├── server.js           # Main server with Socket.IO and admin API
 │   ├── package.json        # Backend dependencies
+│   ├── feedback/           # User feedback storage (JSON files)
 │   ├── README.md           # Backend documentation
 │   └── DEPLOY-RENDER.md    # Detailed deployment guide
 │
 ├── frontend/
-│   ├── index.html          # Main HTML file with all screens
+│   ├── index.html          # Main HTML with all chat screens
 │   ├── styles.css          # Mobile-first responsive styles
-│   └── app.js              # Client-side Socket.IO handling
+│   └── app.js              # Client Socket.IO + notifications + referrals
+│
+├── admin-dashboard/        # Real-time admin monitoring panel
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── AdminLayout.jsx      # Layout with sidebar & dark mode
+│   │   ├── pages/
+│   │   │   ├── Dashboard.jsx        # Live charts & metrics
+│   │   │   ├── Login.jsx            # Admin authentication
+│   │   │   ├── Feedback.jsx         # Feedback management
+│   │   │   ├── SystemLogs.jsx       # System health monitoring
+│   │   │   ├── Settings.jsx         # Dashboard configuration
+│   │   │   ├── Users.jsx            # User monitoring
+│   │   │   └── Chats.jsx            # Chat activity tracking
+│   │   ├── utils/
+│   │   │   ├── api.js               # Backend API calls
+│   │   │   └── socket.js            # WebSocket connection
+│   │   ├── App.jsx                  # Main app with routing
+│   │   ├── main.jsx                 # React entry point
+│   │   └── index.css                # TailwindCSS styles
+│   ├── package.json                 # Dashboard dependencies
+│   ├── vite.config.js               # Vite configuration
+│   ├── tailwind.config.js           # TailwindCSS config
+│   ├── README.md                    # Dashboard documentation
+│   └── SETUP-GUIDE.md               # Setup instructions
 │
 ├── render.yaml             # Render.com deployment config
+├── package.json            # Workspace configuration
 ├── .gitignore
 └── README.md               # This file
 ```
@@ -118,17 +196,36 @@ sulyap/
 ### Technical Architecture
 
 #### Backend (server.js)
-- Express server serves frontend static files
-- Socket.IO manages WebSocket connections
+- Express server serves frontend static files and admin API
+- Socket.IO manages WebSocket connections for chat and admin dashboard
 - Waiting queue stores unpaired users
 - Active pairs map tracks current conversations
-- All data exists only in memory (no database)
+- Admin tracking excludes admin connections from user counts
+- Real-time event broadcasting for charts and metrics
+- Feedback system with JSON file storage
+- Hourly message tracking for analytics
+- Session duration calculation
+- All chat data exists only in memory (no database)
 
 #### Frontend (app.js)
 - Socket.IO client connects to server
 - Event-driven architecture for UI updates
 - Screen management system (landing, waiting, chat, disconnected)
-- Real-time message rendering
+- Real-time message rendering with reply functionality
+- Browser notification system (requires permission)
+- Referral code generation and tracking
+- Online user counter display
+- Fixed header with custom username support
+
+#### Admin Dashboard (React + Vite + TailwindCSS)
+- Real-time WebSocket connection with auto-reconnection
+- Recharts for live animated data visualization
+- React Router for page navigation
+- JWT-based authentication
+- Dark mode with localStorage persistence
+- Responsive mobile-first design
+- API proxy to backend (port 3000)
+- TailwindCSS with custom Sulyap color palette
 
 ## 🎯 Key Features Explained
 
@@ -234,10 +331,13 @@ Test on local network:
 - [ ] Interest-based matching
 - [ ] Language preferences
 - [ ] Message reactions/emojis
-- [ ] Dark mode toggle
 - [ ] Mobile app (React Native)
 - [ ] Rate limiting and spam protection
-- [ ] Admin dashboard for monitoring
+- [ ] User activity timeline in admin dashboard
+- [ ] Export analytics reports (PDF/CSV)
+- [ ] Email notifications for admins
+- [ ] Advanced filtering and search
+- [ ] Multi-language support (Tagalog, English)
 
 ## 🤝 Contributing
 

@@ -373,8 +373,7 @@ Tested and working on:
 8. **CopySuccess** - Copy feedback
 9. **StarPop** - Rating selection
 10. **HeartBeat** - Thank you animation
-11. **TypingBounce** - Typing indicator
-12. **SadFace** - Exit modal character
+11. **SadFace** - Exit modal character
 
 All animations:
 - GPU accelerated where possible
