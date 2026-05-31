@@ -4,44 +4,44 @@
 
 Built with Node.js, Express, Socket.IO, and vanilla JavaScript.
 
-## ✨ Features
+## Features
 
 ### Core Features
-- 🎲 **Random Pairing**: Automatically matches users with random chat partners
-- 🔒 **100% Anonymous**: No registration, authentication, or personal data required
-- 💬 **Real-Time Messaging**: Instant message delivery using WebSocket technology
-- 🗑️ **Zero Data Retention**: All conversations deleted immediately when chat ends
-- 📱 **Mobile-First Design**: Fully responsive across all devices
-- ⚡ **Lightweight**: Fast performance with minimal dependencies
-- 🎨 **Clean UI**: Minimalist Filipino-inspired design with smooth animations
+- **Random Pairing**: Automatically matches users with random chat partners
+- **100% Anonymous**: No registration, authentication, or personal data required
+- **Real-Time Messaging**: Instant message delivery using WebSocket technology
+- **Zero Data Retention**: All conversations deleted immediately when chat ends
+- **Mobile-First Design**: Fully responsive across all devices
+- **Lightweight**: Fast performance with minimal dependencies
+- **Clean UI**: Minimalist Filipino-inspired design with smooth animations
 
 ### Advanced Features
-- 📌 **Fixed Chat Header**: Profile info stays visible while scrolling messages
-- ↩️ **Reply to Messages**: Click any message to reply with context
-- 🔔 **Browser Notifications**: Get notified when partner sends messages (with permission)
-- 🔗 **Referral System**: Share your unique referral link and track engagement
-- 📝 **Feedback System**: Rate your experience and leave comments
-- 👤 **Custom Usernames**: Choose your display name before chatting
-- 👁️ **Online User Counter**: See how many people are currently active
+- **Fixed Chat Header**: Profile info stays visible while scrolling messages
+- **Reply to Messages**: Click any message to reply with context
+- **Browser Notifications**: Get notified when partner sends messages (with permission)
+- **Referral System**: Share your unique referral link and track engagement
+- **Feedback System**: Rate your experience and leave comments
+- **Custom Usernames**: Choose your display name before chatting
+- **Online User Counter**: See how many people are currently active
 
 ### Admin Dashboard (NEW!)
-- 📊 **Real-Time Analytics**: Live monitoring of user activity and engagement
-- 📈 **Dynamic Charts**: Activity graphs, message volume, session distribution
-- 💬 **Feedback Management**: View, pin, mark as read, and export user feedback
-- 🔴 **Live Indicators**: Real-time connection status with auto-reconnection
-- 📉 **System Health Monitoring**: Server uptime, memory usage, error logs
-- 🎯 **Zero Fake Data**: All metrics based on actual user activity
-- 🌐 **Responsive Design**: Works perfectly on desktop, tablet, and mobile
+- **Real-Time Analytics**: Live monitoring of user activity and engagement
+- **Dynamic Charts**: Activity graphs, message volume, session distribution
+- **Feedback Management**: View, pin, mark as read, and export user feedback
+- **Live Indicators**: Real-time connection status with auto-reconnection
+- **System Health Monitoring**: Server uptime, memory usage, error logs
+- **Zero Fake Data**: All metrics based on actual user activity
+- **Responsive Design**: Works perfectly on desktop, tablet, and mobile
 
-## ✨ What is Sulyap?
+## What is Sulyap?
 
 **Sulyap** represents the fleeting nature of anonymous connections:
-- 🌟 **Brief Encounters** - Connect with a stranger for a momentary conversation
-- 👻 **No Traces** - Messages disappear when the chat ends
-- 🔒 **Complete Anonymity** - No registration, no data stored
-- 💨 **Ephemeral** - Like a glance that fades away
+- **Brief Encounters** - Connect with a stranger for a momentary conversation
+- **No Traces** - Messages disappear when the chat ends
+- **Complete Anonymity** - No registration, no data stored
+- **Ephemeral** - Like a glance that fades away
 
-## 🚀 Quick Start (Local Development)
+## Quick Start (Local Development)
 
 ### Prerequisites
 
@@ -83,7 +83,7 @@ Built with Node.js, Express, Socket.IO, and vanilla JavaScript.
    - Username: `admin`
    - Password: `admin123`
 
-## 🎯 Admin Dashboard
+## Admin Dashboard
 
 Access the real-time monitoring dashboard at `http://localhost:3001`
 
@@ -106,7 +106,7 @@ ADMIN_USERNAME=your_username
 ADMIN_PASSWORD=your_secure_password
 ```
 
-## 🌐 Deploy to Render.com (FREE)
+## Deploy to Render.com (FREE)
 
 **Full deployment guide**: See **`backend/DEPLOY-RENDER.md`** for detailed instructions.
 
@@ -130,14 +130,14 @@ ADMIN_PASSWORD=your_secure_password
 
 3. **Access your live app**:
    - Render provides URL: `https://your-app-name.onrender.com`
-   - Share with friends worldwide! 🌍
+   - Share with friends worldwide! 
 
 **Note**: Free tier spins down after 15 min of inactivity. First visit takes 30-60 seconds to wake up.
 
 ### Keep App Warm (Optional)
 Use [UptimeRobot](https://uptimerobot.com) (free) to ping your app every 5 minutes and prevent spin-down.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 sulyap/
@@ -183,7 +183,7 @@ sulyap/
 └── README.md               # This file
 ```
 
-## 🔧 How It Works
+## How It Works
 
 ### User Flow
 
@@ -248,7 +248,7 @@ sulyap/
 - Auto-reconnection on network issues
 - Disconnect detection and handling
 
-## 🛠️ Configuration
+## Configuration
 
 ### Port Configuration
 
@@ -278,14 +278,14 @@ const io = socketIO(server, {
 });
 ```
 
-## 📱 Browser Support
+## Browser Support
 
 - Chrome/Edge (latest)
 - Firefox (latest)
 - Safari (latest)
 - Mobile browsers (iOS Safari, Chrome Mobile)
 
-## 🧪 Testing
+## Testing
 
 ### Local Testing with Multiple Users
 
@@ -300,7 +300,7 @@ Test on local network:
 1. Find your local IP (e.g., `ipconfig` on Windows, `ifconfig` on Mac/Linux)
 2. Access from another device: `http://YOUR_IP:3000`
 
-## 🔒 Security Considerations
+## Security Considerations
 
 - Rate limiting recommended for production
 - Consider adding profanity filter
@@ -308,7 +308,7 @@ Test on local network:
 - Add CAPTCHA to prevent bot spam
 - Use HTTPS in production (Render provides free SSL)
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### "Cannot connect to server"
 - Ensure server is running (`npm start` in backend directory)
@@ -325,7 +325,7 @@ Test on local network:
 - Verify Socket.IO connection status
 - Ensure both users are properly paired
 
-## 📈 Future Enhancements
+## Future Enhancements
 
 - [ ] Video/audio chat support
 - [ ] Interest-based matching
@@ -339,7 +339,7 @@ Test on local network:
 - [ ] Advanced filtering and search
 - [ ] Multi-language support (Tagalog, English)
 
-## 🤝 Contributing
+## Contributing
 
 Contributions welcome! Please follow these steps:
 
@@ -349,7 +349,7 @@ Contributions welcome! Please follow these steps:
 4. Push to branch (`git push origin feature/AmazingFeature`)
 5. Open Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
@@ -377,7 +377,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## 📞 Support
+## Support
 
 For issues, questions, or suggestions:
 - Open an issue on GitHub
@@ -386,6 +386,6 @@ For issues, questions, or suggestions:
 
 ---
 
-**Built with ❤️ for privacy and simplicity**
+**Built for privacy and simplicity as a personal project**
 
-**Deploy Status**: Ready for deployment to Render.com 🚀
+
