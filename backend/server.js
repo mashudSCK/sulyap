@@ -4,6 +4,8 @@ const socketIO = require('socket.io');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+const { createHash, timingSafeEqual } = require('crypto');
+const { createAdminSessions } = require('./admin-sessions');
 
 const app = express();
 const server = http.createServer(app);
@@ -30,7 +32,27 @@ const PORT = process.env.PORT || 3000;
 
 // Admin configuration
 const adminUsername = process.env.ADMIN_USERNAME || 'admin';
-const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+// Fail closed for admin access; anonymous chat can still run without admin setup.
+const adminPassword = process.env.ADMIN_PASSWORD;
+const adminConfigured = typeof adminPassword === 'string' && adminPassword.length >= 16;
+const adminSessions = createAdminSessions();
+const ADMIN_ROOM = 'authenticated-admins';
+
+function credentialsMatch(username, password) {
+  if (typeof username !== 'string' || typeof password !== 'string') return false;
+  const digest = value => createHash('sha256').update(value).digest();
+  return timingSafeEqual(digest(username), digest(adminUsername)) &&
+    timingSafeEqual(digest(password), digest(adminPassword));
+}
+
+// A query parameter is not authentication. Only verified sessions enter this room.
+io.use((socket, next) => {
+  if (socket.handshake.query.admin !== 'true') return next();
+  const session = adminSessions.get(socket.handshake.auth && socket.handshake.auth.token);
+  if (!session) return next(new Error('Unauthorized'));
+  socket.data.adminSession = session;
+  next();
+});
 
 // Store admin stats
 let adminStats = {
@@ -81,7 +103,7 @@ function broadcastAdminStats() {
     adminStats.avgSessionDuration = Math.round(avg / 60000); // Convert to minutes
   }
   
-  io.emit('admin-stats-update', adminStats);
+  io.to(ADMIN_ROOM).emit('admin-stats-update', adminStats);
 }
 
 // Broadcast chart data updates
@@ -107,7 +129,7 @@ function broadcastChartUpdate() {
   // Get last 20 hourly message data points
   const hourlyData = Object.values(hourlyMessageCounts).slice(-20);
   
-  io.emit('chart-update', {
+  io.to(ADMIN_ROOM).emit('chart-update', {
     timestamp,
     activityPoint: Math.max(0, realUserCount),
     messagePoint: dailyMessages,
@@ -170,26 +192,32 @@ io.on('connection', (socket) => {
   socket.connectedAt = Date.now();
   
   // Check if this is an admin connection
-  const isAdmin = socket.handshake.query.admin === 'true';
+  const isAdmin = !!socket.data.adminSession;
   if (isAdmin) {
     adminSockets.add(socket.id);
+    socket.join(ADMIN_ROOM);
+    // Expiring HTTP access must also expire the long-lived admin socket.
+    const expiry = setTimeout(() => socket.disconnect(true),
+      Math.max(0, socket.data.adminSession.expiresAt - Date.now()));
+    expiry.unref();
+    socket.on('disconnect', () => clearTimeout(expiry));
     console.log('👤 Admin connected:', socket.id);
   }
   
   // Update admin stats and broadcast (with correct user count)
   const realUserCount = io.engine.clientsCount - adminSockets.size;
   adminStats.onlineUsers = Math.max(0, realUserCount);
-  io.emit('admin-stats-update', { onlineUsers: adminStats.onlineUsers });
+  io.to(ADMIN_ROOM).emit('admin-stats-update', { onlineUsers: adminStats.onlineUsers });
   
   // Only emit user_connected for non-admin users
   if (!isAdmin) {
-    io.emit('user_connected', { 
+    io.to(ADMIN_ROOM).emit('user_connected', {
       socketId: socket.id,
       timestamp: new Date().toISOString()
     });
     
     // Update activity chart immediately
-    io.emit('chart-update', {
+    io.to(ADMIN_ROOM).emit('chart-update', {
       timestamp: new Date().toISOString(),
       activityPoint: Math.max(0, realUserCount)
     });
@@ -210,14 +238,14 @@ io.on('connection', (socket) => {
         activePairs.set(partnerId, socket.id);
         
         // Emit chat_started event for admin
-        io.emit('chat_started', {
+        io.to(ADMIN_ROOM).emit('chat_started', {
           user1: socket.id,
           user2: partnerId,
           timestamp: new Date().toISOString()
         });
         
         adminStats.activeChats = Math.floor(activePairs.size / 2);
-        io.emit('admin-stats-update', { activeChats: adminStats.activeChats });
+        io.to(ADMIN_ROOM).emit('admin-stats-update', { activeChats: adminStats.activeChats });
         
         socket.emit('chat-start', { 
           message: 'Connected!', 
@@ -265,14 +293,14 @@ io.on('connection', (socket) => {
         }
         
         // Emit message_sent event for admin
-        io.emit('message_sent', {
+        io.to(ADMIN_ROOM).emit('message_sent', {
           from: socket.id,
           to: partnerId,
           timestamp: new Date().toISOString()
         });
         
         // Immediately update chart with new message data point
-        io.emit('chart-update', {
+        io.to(ADMIN_ROOM).emit('chart-update', {
           timestamp: new Date().toISOString(),
           messagePoint: dailyMessages,
           hourlyData: Object.values(hourlyMessageCounts).slice(-20)
@@ -334,7 +362,7 @@ io.on('connection', (socket) => {
         console.log('✅ Feedback saved successfully');
         
         // Emit feedback_submitted event for admin dashboard
-        io.emit('feedback_submitted', {
+        io.to(ADMIN_ROOM).emit('feedback_submitted', {
           id: feedbackId,
           ...feedbackData
         });
@@ -383,7 +411,7 @@ function handleDisconnection(socket) {
     }
     
     // Emit chat_ended event for admin
-    io.emit('chat_ended', {
+    io.to(ADMIN_ROOM).emit('chat_ended', {
       user1: socket.id,
       user2: partnerId,
       timestamp: new Date().toISOString()
@@ -393,7 +421,7 @@ function handleDisconnection(socket) {
     activePairs.delete(partnerId);
     
     adminStats.activeChats = Math.floor(activePairs.size / 2);
-    io.emit('admin-stats-update', { activeChats: adminStats.activeChats });
+    io.to(ADMIN_ROOM).emit('admin-stats-update', { activeChats: adminStats.activeChats });
   }
   
   const queueIndex = waitingQueue.indexOf(socket.id);
@@ -402,14 +430,14 @@ function handleDisconnection(socket) {
   }
   
   // Emit user_disconnected event for admin
-  io.emit('user_disconnected', {
+  io.to(ADMIN_ROOM).emit('user_disconnected', {
     socketId: socket.id,
     timestamp: new Date().toISOString()
   });
   
   // Update activity chart immediately
   const realUserCount = io.engine.clientsCount - adminSockets.size;
-  io.emit('chart-update', {
+  io.to(ADMIN_ROOM).emit('chart-update', {
     timestamp: new Date().toISOString(),
     activityPoint: Math.max(0, realUserCount)
   });
@@ -419,17 +447,37 @@ function handleDisconnection(socket) {
 // ADMIN API ENDPOINTS
 // ============================================
 
-// Admin login endpoint
+// Global bounded login budget prevents unbounded credential guessing/session creation.
+let loginWindow = Date.now();
+let loginAttempts = 0;
 app.post('/api/admin/login', (req, res) => {
-  const { username, password } = req.body;
-  
-  if (username === adminUsername && password === adminPassword) {
-    // In production, use proper JWT
-    const token = Buffer.from(`${username}:${Date.now()}`).toString('base64');
-    res.json({ token });
-  } else {
-    res.status(401).json({ error: 'Invalid credentials' });
+  res.setHeader('Cache-Control', 'no-store');
+  if (!adminConfigured) {
+    return res.status(503).json({ error: 'Admin access is not configured' });
   }
+  if (Date.now() - loginWindow >= 60000) {
+    loginWindow = Date.now();
+    loginAttempts = 0;
+  }
+  if (++loginAttempts > 20) {
+    res.setHeader('Retry-After', '60');
+    return res.status(429).json({ error: 'Too many login attempts' });
+  }
+  const { username, password } = req.body || {};
+  if (!credentialsMatch(username, password)) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+  res.json(adminSessions.issue());
+});
+
+// Mount before all protected handlers, including unknown/future admin endpoints.
+app.use('/api/admin', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const match = /^Bearer ([a-f0-9]{64})$/.exec(req.get('Authorization') || '');
+  if (!match || !adminSessions.get(match[1])) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
 });
 
 // Admin stats endpoint
