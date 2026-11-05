@@ -65,13 +65,13 @@ git push -u origin main
 1. Click **"New +"** → **"Web Service"**
 2. Connect your GitHub repository: `random-chat`
 3. Configure:
-   - **Name**: `random-chat` (or any name)
+- **Name**: `sulyap` (or any name)
    - **Region**: Choose closest to you
    - **Branch**: `main`
-   - **Root Directory**: `backend`
+   - **Root Directory**: repository root
    - **Runtime**: `Node`
-   - **Build Command**: `npm install`
-   - **Start Command**: `node server.js`
+   - **Build Command**: `npm install --workspace=backend --omit=dev`
+   - **Start Command**: `npm run start --workspace=backend`
    - **Instance Type**: `Free`
 
 4. Click **"Create Web Service"**
@@ -80,13 +80,16 @@ git push -u origin main
 
 ## Step 4: Environment Configuration
 
-Render automatically sets `PORT` environment variable. Your app is already configured to use it:
+Render automatically sets `PORT`. Configure these service variables before the backend starts:
 
-```javascript
-const PORT = process.env.PORT || 3000;
-```
+- `NODE_ENV=production`
+- `ADMIN_USERNAME` — choose a non-default admin name
+- `ADMIN_PASSWORD` — choose a strong, unique password
+- `ADMIN_ORIGIN` — exact origin of the separately hosted dashboard (for example, `https://sulyap-admin.onrender.com`)
 
-No additional environment variables needed! ✓
+The root `render.yaml` prompts for the admin name, password, and dashboard origin. Production startup fails when the admin name or password is missing. Admin tokens expire after 12 hours and are cleared when the process restarts.
+
+The blueprint deploys the backend and chat site. If you want the separate admin dashboard online, create a Render Static Site with root directory `admin-dashboard`, build command `npm install && npm run build`, and publish directory `dist`. Set `VITE_API_BASE` and `VITE_SOCKET_URL` to the backend origin, and set the backend's `ADMIN_ORIGIN` to the dashboard origin.
 
 ---
 

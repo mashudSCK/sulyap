@@ -1,36 +1,47 @@
 const express = require('express');
 const http = require('http');
+const os = require('os');
 const socketIO = require('socket.io');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+const crypto = require('crypto');
+const { createAdminAuth } = require('./auth');
+const { validateChatPayload, validateFeedbackPayload, sanitizeFeedbackUpdates, isSafeFeedbackId } = require('./validation');
 
 const app = express();
+if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
+app.disable('x-powered-by');
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  next();
+});
 const server = http.createServer(app);
+const adminAuth = createAdminAuth();
+const allowedOrigins = ['http://localhost:3001', 'http://localhost:3002', ...(process.env.ADMIN_ORIGIN || '').split(',').map(origin => origin.trim()).filter(Boolean)];
 const io = socketIO(server, {
   cors: {
-    origin: ['http://localhost:3001', 'http://localhost:3002'],
+    origin: allowedOrigins,
     credentials: true
   }
 });
+const adminIo = io.of('/admin');
+adminIo.use(adminAuth.authenticateSocket);
 
 // Enable CORS for admin dashboard
 app.use(cors({
-  origin: ['http://localhost:3001', 'http://localhost:3002'],
+  origin: allowedOrigins,
   credentials: true
 }));
 
 app.use(express.static(path.join(__dirname, '../frontend')));
-app.use(express.json());
+app.use(express.json({ limit: '16kb' }));
 
 const waitingQueue = [];
 const activePairs = new Map();
-const adminSockets = new Set(); // Track admin socket connections
 const PORT = process.env.PORT || 3000;
-
-// Admin configuration
-const adminUsername = process.env.ADMIN_USERNAME || 'admin';
-const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
 
 // Store admin stats
 let adminStats = {
@@ -70,7 +81,7 @@ initializeHourlyData();
 // Broadcast admin stats to all admin clients
 function broadcastAdminStats() {
   // Calculate real user count (excluding admin connections)
-  const realUserCount = io.engine.clientsCount - adminSockets.size;
+  const realUserCount = io.sockets.sockets.size;
   adminStats.onlineUsers = Math.max(0, realUserCount);
   adminStats.activeChats = Math.floor(activePairs.size / 2);
   adminStats.totalMessages = dailyMessages;
@@ -81,12 +92,12 @@ function broadcastAdminStats() {
     adminStats.avgSessionDuration = Math.round(avg / 60000); // Convert to minutes
   }
   
-  io.emit('admin-stats-update', adminStats);
+  adminIo.emit('admin-stats-update', adminStats);
 }
 
 // Broadcast chart data updates
 function broadcastChartUpdate() {
-  const realUserCount = io.engine.clientsCount - adminSockets.size;
+  const realUserCount = io.sockets.sockets.size;
   const timestamp = new Date().toISOString();
   
   // Add current activity to history
@@ -107,7 +118,7 @@ function broadcastChartUpdate() {
   // Get last 20 hourly message data points
   const hourlyData = Object.values(hourlyMessageCounts).slice(-20);
   
-  io.emit('chart-update', {
+  adminIo.emit('chart-update', {
     timestamp,
     activityPoint: Math.max(0, realUserCount),
     messagePoint: dailyMessages,
@@ -155,8 +166,15 @@ setInterval(broadcastChartUpdate, 5000);
 
 // Broadcast online user count to all clients (excluding admins)
 function broadcastOnlineCount() {
-  const realUserCount = io.engine.clientsCount - adminSockets.size;
+  const realUserCount = io.sockets.sockets.size;
   io.emit('online-count', { count: Math.max(0, realUserCount) });
+}
+
+function broadcastQueuePositions() {
+  waitingQueue.forEach((socketId, index) => {
+    const waitingSocket = io.sockets.sockets.get(socketId);
+    waitingSocket?.emit('queue-position', { position: index + 1 });
+  });
 }
 
 // NEW: Feedback storage directory
@@ -165,59 +183,63 @@ if (!fs.existsSync(feedbackDir)) {
   fs.mkdirSync(feedbackDir, { recursive: true });
 }
 
+adminIo.on('connection', (socket) => {
+  console.log('Admin connected:', socket.id);
+  const expiryTimer = setTimeout(() => socket.disconnect(true), Math.max(0, socket.data.adminExpiresAt - Date.now()));
+  socket.on('disconnect', () => {
+    clearTimeout(expiryTimer);
+    console.log('Admin disconnected:', socket.id);
+  });
+});
+
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
   socket.connectedAt = Date.now();
   
-  // Check if this is an admin connection
-  const isAdmin = socket.handshake.query.admin === 'true';
-  if (isAdmin) {
-    adminSockets.add(socket.id);
-    console.log('👤 Admin connected:', socket.id);
-  }
-  
   // Update admin stats and broadcast (with correct user count)
-  const realUserCount = io.engine.clientsCount - adminSockets.size;
+  const realUserCount = io.sockets.sockets.size;
   adminStats.onlineUsers = Math.max(0, realUserCount);
-  io.emit('admin-stats-update', { onlineUsers: adminStats.onlineUsers });
+  adminIo.emit('admin-stats-update', { onlineUsers: adminStats.onlineUsers });
   
-  // Only emit user_connected for non-admin users
-  if (!isAdmin) {
-    io.emit('user_connected', { 
-      socketId: socket.id,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Update activity chart immediately
-    io.emit('chart-update', {
-      timestamp: new Date().toISOString(),
-      activityPoint: Math.max(0, realUserCount)
-    });
-  }
+    adminIo.emit('user_connected', {
+    socketId: socket.id,
+    timestamp: new Date().toISOString()
+  });
+
+  // Update activity chart immediately.
+  adminIo.emit('chart-update', {
+    timestamp: new Date().toISOString(),
+    activityPoint: Math.max(0, realUserCount)
+  });
   
   // Send current online count to new user and broadcast to all
   broadcastOnlineCount();
 
   socket.on('start-chat', (data) => {
-    const username = data?.username || 'Stranger';
+    if (activePairs.has(socket.id) || waitingQueue.includes(socket.id)) return;
+    socket.data.chatCleanupDone = false;
+    socket.connectedAt = Date.now();
+    const requestedName = typeof data?.username === 'string' ? data.username.trim() : '';
+    const username = requestedName ? requestedName.slice(0, 32) : 'Stranger';
     socket.username = username;
     
     if (waitingQueue.length > 0) {
       const partnerId = waitingQueue.shift();
+      broadcastQueuePositions();
       const partnerSocket = io.sockets.sockets.get(partnerId);
       if (partnerSocket) {
         activePairs.set(socket.id, partnerId);
         activePairs.set(partnerId, socket.id);
         
         // Emit chat_started event for admin
-        io.emit('chat_started', {
+        adminIo.emit('chat_started', {
           user1: socket.id,
           user2: partnerId,
           timestamp: new Date().toISOString()
         });
         
         adminStats.activeChats = Math.floor(activePairs.size / 2);
-        io.emit('admin-stats-update', { activeChats: adminStats.activeChats });
+        adminIo.emit('admin-stats-update', { activeChats: adminStats.activeChats });
         
         socket.emit('chat-start', { 
           message: 'Connected!', 
@@ -232,14 +254,18 @@ io.on('connection', (socket) => {
       } else {
         waitingQueue.push(socket.id);
         socket.emit('waiting', { message: 'Waiting...' });
+        broadcastQueuePositions();
       }
     } else {
       waitingQueue.push(socket.id);
       socket.emit('waiting', { message: 'Waiting...' });
+      broadcastQueuePositions();
     }
   });
 
   socket.on('send-message', (data) => {
+    const payload = validateChatPayload(data);
+    if (!payload) return;
     const partnerId = activePairs.get(socket.id);
     if (partnerId) {
       const partnerSocket = io.sockets.sockets.get(partnerId);
@@ -265,14 +291,14 @@ io.on('connection', (socket) => {
         }
         
         // Emit message_sent event for admin
-        io.emit('message_sent', {
+        adminIo.emit('message_sent', {
           from: socket.id,
           to: partnerId,
           timestamp: new Date().toISOString()
         });
         
         // Immediately update chart with new message data point
-        io.emit('chart-update', {
+        adminIo.emit('chart-update', {
           timestamp: new Date().toISOString(),
           messagePoint: dailyMessages,
           hourlyData: Object.values(hourlyMessageCounts).slice(-20)
@@ -280,9 +306,9 @@ io.on('connection', (socket) => {
         
         // Forward message with reply data if present
         partnerSocket.emit('receive-message', { 
-          message: data.message,
+          message: payload.message,
           senderName: socket.username,
-          replyTo: data.replyTo || null // Include reply metadata
+          replyTo: payload.replyTo
         });
       }
     }
@@ -310,18 +336,24 @@ io.on('connection', (socket) => {
   });
 
   // NEW: Handle feedback submission
-  socket.on('submit-feedback', (data) => {
+  socket.on('submit-feedback', (data, acknowledge) => {
+    const acknowledgeSubmission = typeof acknowledge === 'function' ? acknowledge : (result) => socket.emit('feedback-received', result);
+    const feedback = validateFeedbackPayload(data);
+    if (!feedback) {
+      acknowledgeSubmission({ success: false, error: 'Invalid feedback' });
+      return;
+    }
     console.log('📝 Feedback received:', {
-      rating: data.rating,
-      hasComment: !!data.comment,
-      referral: data.referralCode || 'none'
+      rating: feedback.rating,
+      hasComment: !!feedback.comment,
+      referral: feedback.referralCode || 'none'
     });
     
     // Save feedback to file
-    const feedbackId = `feedback-${Date.now()}`;
+    const feedbackId = `feedback-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
     const feedbackFile = path.join(feedbackDir, `${feedbackId}.json`);
     const feedbackData = {
-      ...data,
+      ...feedback,
       timestamp: new Date().toISOString(),
       read: false,
       pinned: false
@@ -330,19 +362,18 @@ io.on('connection', (socket) => {
     fs.writeFile(feedbackFile, JSON.stringify(feedbackData, null, 2), (err) => {
       if (err) {
         console.error('Error saving feedback:', err);
+        acknowledgeSubmission({ success: false, error: 'Could not save feedback' });
       } else {
         console.log('✅ Feedback saved successfully');
         
         // Emit feedback_submitted event for admin dashboard
-        io.emit('feedback_submitted', {
+        adminIo.emit('feedback_submitted', {
           id: feedbackId,
           ...feedbackData
         });
+        acknowledgeSubmission({ success: true });
       }
     });
-    
-    // Acknowledge receipt
-    socket.emit('feedback-received', { success: true });
   });
 
   socket.on('end-chat', () => {
@@ -357,14 +388,8 @@ io.on('connection', (socket) => {
 });
 
 function handleDisconnection(socket) {
-  // Check if this was an admin connection
-  const wasAdmin = adminSockets.has(socket.id);
-  if (wasAdmin) {
-    adminSockets.delete(socket.id);
-    console.log('👤 Admin disconnected:', socket.id);
-    return; // Don't process admin disconnections as user disconnections
-  }
-  
+  if (socket.data.chatCleanupDone) return;
+  socket.data.chatCleanupDone = true;
   // Track session duration
   if (socket.connectedAt) {
     const duration = Date.now() - socket.connectedAt;
@@ -383,7 +408,7 @@ function handleDisconnection(socket) {
     }
     
     // Emit chat_ended event for admin
-    io.emit('chat_ended', {
+    adminIo.emit('chat_ended', {
       user1: socket.id,
       user2: partnerId,
       timestamp: new Date().toISOString()
@@ -393,23 +418,24 @@ function handleDisconnection(socket) {
     activePairs.delete(partnerId);
     
     adminStats.activeChats = Math.floor(activePairs.size / 2);
-    io.emit('admin-stats-update', { activeChats: adminStats.activeChats });
+    adminIo.emit('admin-stats-update', { activeChats: adminStats.activeChats });
   }
   
   const queueIndex = waitingQueue.indexOf(socket.id);
   if (queueIndex > -1) {
     waitingQueue.splice(queueIndex, 1);
+    broadcastQueuePositions();
   }
   
   // Emit user_disconnected event for admin
-  io.emit('user_disconnected', {
+  adminIo.emit('user_disconnected', {
     socketId: socket.id,
     timestamp: new Date().toISOString()
   });
   
   // Update activity chart immediately
-  const realUserCount = io.engine.clientsCount - adminSockets.size;
-  io.emit('chart-update', {
+  const realUserCount = io.sockets.sockets.size;
+  adminIo.emit('chart-update', {
     timestamp: new Date().toISOString(),
     activityPoint: Math.max(0, realUserCount)
   });
@@ -420,22 +446,53 @@ function handleDisconnection(socket) {
 // ============================================
 
 // Admin login endpoint
+const loginAttempts = new Map();
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const MAX_LOGIN_ATTEMPTS = 10;
+
 app.post('/api/admin/login', (req, res) => {
-  const { username, password } = req.body;
-  
-  if (username === adminUsername && password === adminPassword) {
-    // In production, use proper JWT
-    const token = Buffer.from(`${username}:${Date.now()}`).toString('base64');
-    res.json({ token });
+  const ip = req.ip;
+  const now = Date.now();
+  for (const [address, attempt] of loginAttempts) {
+    if (now - attempt.startedAt >= LOGIN_WINDOW_MS) loginAttempts.delete(address);
+  }
+  const previous = loginAttempts.get(ip);
+  const attempt = previous && now - previous.startedAt < LOGIN_WINDOW_MS
+    ? previous
+    : { startedAt: now, count: 0 };
+
+  if (attempt.count >= MAX_LOGIN_ATTEMPTS) {
+    return res.status(429).json({ error: 'Too many login attempts. Try again later.' });
+  }
+
+  const { username, password } = req.body || {};
+  if (adminAuth.verifyCredentials(username, password)) {
+    loginAttempts.delete(ip);
+    res.json({ token: adminAuth.createToken() });
   } else {
+    attempt.count += 1;
+    loginAttempts.set(ip, attempt);
     res.status(401).json({ error: 'Invalid credentials' });
   }
+});
+
+app.use('/api/admin', (req, res, next) => {
+  if (req.path === '/login') return next();
+  return adminAuth.authenticateHttp(req, res, next);
+});
+
+app.delete('/api/admin/session', (req, res) => {
+  adminAuth.revokeToken(req.adminToken);
+  for (const socket of adminIo.sockets.values()) {
+    if (socket.data.adminToken === req.adminToken) socket.disconnect(true);
+  }
+  res.status(204).end();
 });
 
 // Admin stats endpoint
 app.get('/api/admin/stats', (req, res) => {
   // Update stats from current state (excluding admin connections)
-  const realUserCount = io.engine.clientsCount - adminSockets.size;
+  const realUserCount = io.sockets.sockets.size;
   adminStats.onlineUsers = Math.max(0, realUserCount);
   adminStats.activeChats = Math.floor(activePairs.size / 2);
   adminStats.totalMessages = dailyMessages;
@@ -448,6 +505,21 @@ app.get('/api/admin/stats', (req, res) => {
     ],
     sessionData: calculateSessionDistribution(),
     hourlyData: Object.values(hourlyMessageCounts).slice(-20)
+  });
+});
+
+app.get('/api/admin/health', (req, res) => {
+  const memory = process.memoryUsage();
+  const totalMemory = os.totalmem();
+  const loadAverage = os.loadavg()[0];
+  res.json({
+    online: true,
+    uptimeSeconds: Math.floor(process.uptime()),
+    memoryUsedBytes: memory.rss,
+    memoryTotalBytes: totalMemory,
+    memoryPercent: Math.round((memory.rss / totalMemory) * 100),
+    loadAverage: Number(loadAverage.toFixed(2)),
+    cpuCount: os.cpus().length
   });
 });
 
@@ -477,7 +549,9 @@ app.get('/api/admin/feedback', (req, res) => {
 // Update feedback
 app.patch('/api/admin/feedback/:id', (req, res) => {
   const { id } = req.params;
-  const updates = req.body;
+  if (!isSafeFeedbackId(id)) return res.status(400).json({ error: 'Invalid feedback ID' });
+  const updates = sanitizeFeedbackUpdates(req.body);
+  if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No valid feedback updates provided' });
   const filePath = path.join(feedbackDir, `${id}.json`);
   
   if (fs.existsSync(filePath)) {
@@ -493,6 +567,7 @@ app.patch('/api/admin/feedback/:id', (req, res) => {
 // Delete feedback
 app.delete('/api/admin/feedback/:id', (req, res) => {
   const { id } = req.params;
+  if (!isSafeFeedbackId(id)) return res.status(400).json({ error: 'Invalid feedback ID' });
   const filePath = path.join(feedbackDir, `${id}.json`);
   
   if (fs.existsSync(filePath)) {
@@ -505,26 +580,7 @@ app.delete('/api/admin/feedback/:id', (req, res) => {
 
 // System logs endpoint
 app.get('/api/admin/logs', (req, res) => {
-  const { severity } = req.query;
-  
-  // Mock logs - replace with real logging system
-  const logs = [
-    {
-      severity: 'info',
-      message: 'Server started successfully',
-      timestamp: new Date().toISOString(),
-      details: 'Port 3000'
-    },
-    {
-      severity: 'warning',
-      message: 'High memory usage detected',
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-      details: '85% memory utilization'
-    }
-  ];
-  
-  const filtered = severity ? logs.filter(log => log.severity === severity) : logs;
-  res.json(filtered);
+  res.json([]);
 });
 
 // Export endpoint (CSV)
@@ -539,13 +595,19 @@ app.get('/api/admin/export/:type', (req, res) => {
       if (file.endsWith('.json')) {
         const data = JSON.parse(fs.readFileSync(path.join(feedbackDir, file), 'utf8'));
         const id = file.replace('.json', '');
-        csv += `${id},"${data.timestamp}",${data.rating},"${data.username || 'Anonymous'}","${(data.message || '').replace(/"/g, '""')}"\n`;
+        const comment = String(data.comment || '').replace(/[\r\n]+/g, ' ').replace(/"/g, '""');
+        const safeComment = /^[=+@\-]/.test(comment) ? `'${comment}` : comment;
+        csv += `${id},"${data.timestamp}",${data.rating},"Anonymous","${safeComment}"\n`;
       }
     });
     
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename=feedback.csv');
     res.send(csv);
+  } else if (type === 'logs') {
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=system-logs.csv');
+    res.send('Severity,Message,Date,Details\n');
   } else {
     res.status(400).json({ error: 'Invalid export type' });
   }

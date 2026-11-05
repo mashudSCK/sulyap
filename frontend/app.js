@@ -11,6 +11,9 @@ const startBtn = document.getElementById('start-btn');
 const cancelWaitingBtn = document.getElementById('cancel-waiting-btn');
 const endChatBtn = document.getElementById('end-chat-btn');
 const newChatBtn = document.getElementById('new-chat-btn');
+const homeBtn = document.getElementById('home-btn');
+const queuePosition = document.getElementById('queue-position');
+const queueNumber = document.getElementById('queue-number');
 
 // Message elements
 const messageForm = document.getElementById('message-form');
@@ -69,9 +72,16 @@ if (referralCode) {
   console.log('🔗 Referred by:', referralCode);
 }
 
-function showScreen(screen) {
+function showScreen(screen, moment = null) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   screen.classList.add('active');
+  const screenMoments = {
+    'landing-screen': 'arrival',
+    'waiting-screen': 'waiting',
+    'chat-screen': 'conversation',
+    'disconnected-screen': 'goodbye'
+  };
+  document.body.dataset.moment = moment || screenMoments[screen.id] || 'arrival';
   if (screen === chatScreen) {
     messageInput.focus();
   }
@@ -208,6 +218,7 @@ function playNotificationSound() {
 
 startBtn.addEventListener('click', () => {
   const username = usernameInput.value.trim() || 'Stranger';
+  resetQueuePosition();
   socket.emit('start-chat', { username });
   showScreen(waitingScreen);
 });
@@ -236,8 +247,14 @@ modalEndBtn.addEventListener('click', () => {
 
 newChatBtn.addEventListener('click', () => {
   const username = usernameInput.value.trim() || 'Stranger';
+  resetQueuePosition();
   socket.emit('start-chat', { username });
   showScreen(waitingScreen);
+});
+
+homeBtn.addEventListener('click', () => {
+  clearReplyMessage();
+  showScreen(landingScreen);
 });
 
 messageForm.addEventListener('submit', (e) => {
@@ -290,12 +307,20 @@ socket.on('waiting', (data) => {
   showScreen(waitingScreen);
 });
 
+socket.on('queue-position', ({ position } = {}) => {
+  if (!Number.isInteger(position) || position < 1) return;
+  queueNumber.textContent = String(position);
+  queuePosition.textContent = position === 1
+    ? 'You’re first in line.'
+    : `${position - 1} ${position === 2 ? 'person' : 'people'} ahead of you.`;
+});
+
 socket.on('chat-start', (data) => {
   isInChat = true;
   clearMessages();
   clearReplyMessage(); // NEW: Clear any reply state
   messageCounter = 0; // Reset message counter for new chat
-  showScreen(chatScreen);
+  showScreen(chatScreen, 'matched');
   
   // Update header with partner's name
   yourNameText.textContent = `You are chatting with ${data.partnerName}`;
@@ -306,7 +331,13 @@ socket.on('chat-start', (data) => {
   
   // Add system message with animation
   setTimeout(() => {
-    addSystemMessage('🎉 You\'re now connected! Start the conversation.');
+    if (!isInChat) return;
+    addSystemMessage('You\'re connected. Say hello when you\'re ready.');
+    setTimeout(() => {
+      if (isInChat && document.body.dataset.moment === 'matched') {
+        document.body.dataset.moment = 'conversation';
+      }
+    }, 700);
   }, 300);
 });
 
@@ -365,15 +396,22 @@ socket.on('disconnect', (reason) => {
 // Modal functions
 function showExitModal() {
   exitModal.classList.add('active');
+  document.body.dataset.moment = 'ending';
 }
 
 function hideExitModal() {
   exitModal.classList.remove('active');
+  document.body.dataset.moment = 'conversation';
 }
 
 function clearUsername() {
   yourNameText.textContent = 'Stranger';
   partnerNameText.textContent = 'Stranger';
+}
+
+function resetQueuePosition() {
+  queueNumber.textContent = '—';
+  queuePosition.textContent = 'Joining the line…';
 }
 
 // NEW: Reply button event listener
@@ -408,53 +446,50 @@ document.querySelector('.share-btn.messenger').addEventListener('click', () => {
 
 document.querySelector('.share-btn.twitter').addEventListener('click', () => {
   const url = encodeURIComponent(referralLinkInput.value);
-  const text = encodeURIComponent('Just had an amazing fleeting conversation on Sulyap! Try it out:');
+  const text = encodeURIComponent('A brief conversation can make a day. Say hello on Sulyap:');
   window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'width=600,height=400');
 });
 
 // NEW: Feedback modal functionality
 feedbackBtn.addEventListener('click', () => {
   feedbackModal.classList.add('active');
+  document.body.dataset.moment = 'feedback';
   selectedRating = 0;
   feedbackText.value = '';
   charCount.textContent = '0';
   stars.forEach(star => star.classList.remove('active'));
+  stars.forEach((star, index) => {
+    star.setAttribute('aria-checked', 'false');
+    star.tabIndex = index === 2 ? 0 : -1;
+  });
 });
 
 closeFeedbackBtn.addEventListener('click', () => {
   feedbackModal.classList.remove('active');
+  document.body.dataset.moment = 'goodbye';
 });
 
-// NEW: Star rating functionality
+// Accessible 1–5 rating controls; preserve the integer expected by the API.
 stars.forEach(star => {
   star.addEventListener('click', () => {
     selectedRating = parseInt(star.dataset.rating);
     stars.forEach((s, index) => {
-      if (index < selectedRating) {
-        s.classList.add('active');
-      } else {
-        s.classList.remove('active');
-      }
+      s.classList.toggle('active', index < selectedRating);
+      s.setAttribute('aria-checked', String(index + 1 === selectedRating));
+      s.tabIndex = index + 1 === selectedRating ? 0 : -1;
     });
   });
-  
-  star.addEventListener('mouseenter', () => {
-    const rating = parseInt(star.dataset.rating);
-    stars.forEach((s, index) => {
-      if (index < rating) {
-        s.style.filter = 'grayscale(0%)';
-        s.style.opacity = '1';
-      }
-    });
-  });
-  
-  star.addEventListener('mouseleave', () => {
-    stars.forEach((s, index) => {
-      if (index >= selectedRating) {
-        s.style.filter = 'grayscale(100%)';
-        s.style.opacity = '0.4';
-      }
-    });
+
+  star.addEventListener('keydown', (event) => {
+    const current = parseInt(star.dataset.rating);
+    const direction = ['ArrowRight', 'ArrowUp'].includes(event.key) ? 1
+      : ['ArrowLeft', 'ArrowDown'].includes(event.key) ? -1 : 0;
+    if (!direction) return;
+    event.preventDefault();
+    const next = Math.min(5, Math.max(1, current + direction));
+    const nextStar = document.querySelector(`.star[data-rating="${next}"]`);
+    nextStar?.click();
+    nextStar?.focus();
   });
 });
 
@@ -478,16 +513,21 @@ submitFeedbackBtn.addEventListener('click', () => {
   };
   
   // Send feedback to server
-  socket.emit('submit-feedback', feedbackData);
-  
-  // Show thank you modal
-  feedbackModal.classList.remove('active');
-  thankyouModal.classList.add('active');
-  
-  // Auto-close thank you modal after 3 seconds
-  setTimeout(() => {
-    thankyouModal.classList.remove('active');
-  }, 3000);
+  socket.timeout(5000).emit('submit-feedback', feedbackData, (err, result) => {
+    if (err || !result?.success) {
+      alert(result?.error || 'Could not submit feedback. Please try again.');
+      return;
+    }
+    feedbackModal.classList.remove('active');
+    thankyouModal.classList.add('active');
+    document.body.dataset.moment = 'thanks';
+    setTimeout(() => {
+      if (document.body.dataset.moment === 'thanks') {
+        thankyouModal.classList.remove('active');
+        document.body.dataset.moment = 'goodbye';
+      }
+    }, 3000);
+  });
 });
 
 // Close modal on outside click
@@ -501,12 +541,14 @@ exitModal.addEventListener('click', (e) => {
 feedbackModal.addEventListener('click', (e) => {
   if (e.target === feedbackModal) {
     feedbackModal.classList.remove('active');
+    document.body.dataset.moment = 'goodbye';
   }
 });
 
 thankyouModal.addEventListener('click', (e) => {
   if (e.target === thankyouModal) {
     thankyouModal.classList.remove('active');
+    document.body.dataset.moment = 'goodbye';
   }
 });
 

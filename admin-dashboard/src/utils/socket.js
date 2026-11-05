@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client';
+import { clearAdminToken } from './auth';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 const RECONNECT_INTERVAL = 5000;
@@ -21,12 +22,9 @@ class SocketService {
     this.connectionStatus = 'connecting';
     this.emitStatus('connecting');
 
-    this.socket = io(SOCKET_URL, {
+    this.socket = io(`${SOCKET_URL}/admin`, {
       auth: {
         token
-      },
-      query: {
-        admin: true
       },
       reconnection: true,
       reconnectionDelay: RECONNECT_INTERVAL,
@@ -51,6 +49,12 @@ class SocketService {
 
     this.socket.on('connect_error', (error) => {
       console.error('🔴 Connection error:', error.message);
+      if (error.data?.code === 'UNAUTHORIZED') {
+        clearAdminToken();
+        window.dispatchEvent(new Event('admin-auth-expired'));
+        this.disconnect();
+        return;
+      }
       this.handleReconnection();
     });
 

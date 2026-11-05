@@ -11,67 +11,77 @@
     <!-- Landing Screen -->
     <div id="landing-screen" class="screen active">
         <div class="container">
-            <div class="logo">
-                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5" y="15" width="25" height="30" rx="4" stroke="#6366F1" stroke-width="3" fill="none"/>
-                    <rect x="30" y="15" width="25" height="30" rx="4" stroke="#8B5CF6" stroke-width="3" fill="none"/>
-                    <circle cx="15" cy="25" r="2" fill="#6366F1"/>
-                    <circle cx="40" cy="25" r="2" fill="#8B5CF6"/>
+            <div class="landing-copy">
+                <div class="wordmark-kicker">A little space to talk</div>
+                <h1 class="title">Sulyap</h1>
+                <svg class="passing-line passing-line--arrival" viewBox="0 0 120 24" aria-hidden="true" focusable="false">
+                    <path class="passing-line__path" d="M4 12 C25 12 40 4 60 12 S95 20 116 12"/>
+                    <circle class="passing-line__point" cx="4" cy="12" r="2"/>
+                    <circle class="passing-line__point" cx="116" cy="12" r="2"/>
+                    <circle class="passing-line__meeting" cx="60" cy="12" r="2.5"/>
                 </svg>
+                <p class="subtitle">Fleeting conversations with strangers. A brief glance, then it's gone. No registration, no traces.</p>
+
+                <div class="online-counter">
+                    <span class="online-dot"></span>
+                    <span id="online-count">0</span> <span class="online-text">users online</span>
+                </div>
+
+                <div class="username-container">
+                    <input
+                        type="text"
+                        id="username-input"
+                        class="username-input"
+                        placeholder="Enter a name (optional)"
+                        maxlength="20"
+                    >
+                    <p class="username-hint">Leave blank to join as Stranger.</p>
+                </div>
+
+                <button id="start-btn" class="btn btn-primary">
+                    <span>Start Chatting</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M7 4L13 10L7 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div class="features">
+                    <div class="feature"><span>100% Anonymous</span></div>
+                    <div class="feature"><span>Instant Connection</span></div>
+                    <div class="feature"><span>No Data Stored</span></div>
+                </div>
             </div>
-            <h1 class="title">Sulyap</h1>
-            <p class="subtitle">Fleeting conversations with strangers. A brief glance, then it's gone. No registration, no traces.</p>
-            
-            <!-- Online Users Counter -->
-            <div class="online-counter">
-                <span class="online-dot"></span>
-                <span id="online-count">0</span> <span class="online-text">users online</span>
-            </div>
-            
-            <!-- Temporary Username Input -->
-            <div class="username-container">
-                <input 
-                    type="text" 
-                    id="username-input" 
-                    class="username-input" 
-                    placeholder="Enter a name (optional)"
-                    maxlength="20"
-                >
-                <p class="username-hint">✨ Or stay anonymous as "Stranger"</p>
-            </div>
-            
-            <button id="start-btn" class="btn btn-primary">
-                <span>Start Chatting</span>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M7 4L13 10L7 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <aside class="landing-chat-peek" aria-label="Example of a conversation on Sulyap">
+                <div class="peek-heading"><span class="peek-dot"></span> A conversation might start like…</div>
+                <div class="peek-bubble peek-bubble--them">What’s something good you’ve seen today?</div>
+                <svg class="passing-line passing-line--peek" viewBox="0 0 120 24" aria-hidden="true" focusable="false">
+                    <path class="passing-line__path" d="M4 12 C25 12 40 4 60 12 S95 20 116 12"/>
+                    <circle class="passing-line__point" cx="4" cy="12" r="2"/>
+                    <circle class="passing-line__point" cx="116" cy="12" r="2"/>
+                    <circle class="passing-line__meeting" cx="60" cy="12" r="2.5"/>
                 </svg>
-            </button>
-            
-            <div class="features">
-                <div class="feature">
-                    <span class="feature-icon">🔒</span>
-                    <span>100% Anonymous</span>
-                </div>
-                <div class="feature">
-                    <span class="feature-icon">⚡</span>
-                    <span>Instant Connection</span>
-                </div>
-                <div class="feature">
-                    <span class="feature-icon">🗑️</span>
-                    <span>No Data Stored</span>
-                </div>
-            </div>
+                <div class="peek-bubble peek-bubble--you">The sky on my way home. It went pink.</div>
+                <div class="peek-signoff">A moment shared, then carried on.</div>
+            </aside>
         </div>
     </div>
 
     <!-- Waiting Screen -->
     <div id="waiting-screen" class="screen">
         <div class="container">
-            <div class="status-icon">
-                <div class="spinner"></div>
-            </div>
+            <svg class="passing-line passing-line--waiting" viewBox="0 0 120 24" aria-hidden="true" focusable="false">
+                <path class="passing-line__path" d="M4 12 C25 12 40 4 60 12 S95 20 116 12"/>
+                <circle class="passing-line__point" cx="4" cy="12" r="2"/>
+                <circle class="passing-line__point" cx="116" cy="12" r="2"/>
+                <circle class="passing-line__meeting" cx="60" cy="12" r="2.5"/>
+            </svg>
             <h2 class="status-title">Finding a chat partner...</h2>
             <p class="status-message">This usually takes just a few seconds</p>
+            <div class="queue-ticket" role="status" aria-live="polite" aria-atomic="true">
+                <span class="queue-number" id="queue-number" aria-hidden="true">—</span>
+                <span class="queue-copy" id="queue-position">Joining the line…</span>
+            </div>
             <button id="cancel-waiting-btn" class="btn btn-secondary">Cancel</button>
         </div>
     </div>
@@ -83,14 +93,12 @@
             <div class="chat-header fixed-header">
                 <div class="header-content">
                     <div class="header-left">
-                        <div class="logo-small">
-                            <svg width="32" height="32" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="5" y="15" width="25" height="30" rx="4" stroke="#6366F1" stroke-width="3" fill="none"/>
-                                <rect x="30" y="15" width="25" height="30" rx="4" stroke="#8B5CF6" stroke-width="3" fill="none"/>
-                                <circle cx="15" cy="25" r="2" fill="#6366F1"/>
-                                <circle cx="40" cy="25" r="2" fill="#8B5CF6"/>
-                            </svg>
-                        </div>
+                        <svg class="passing-line passing-line--chat" viewBox="0 0 120 24" aria-hidden="true" focusable="false">
+                            <path class="passing-line__path" d="M4 12 C25 12 40 4 60 12 S95 20 116 12"/>
+                            <circle class="passing-line__point" cx="4" cy="12" r="2"/>
+                            <circle class="passing-line__point" cx="116" cy="12" r="2"/>
+                            <circle class="passing-line__meeting" cx="60" cy="12" r="2.5"/>
+                        </svg>
                         <div class="chat-names">
                             <div class="status-indicator">
                                 <span class="status-dot"></span>
@@ -113,7 +121,7 @@
             <!-- Messages Area -->
             <div id="messages-container" class="messages-container">
                 <div class="system-message">
-                    <p>🎉 You're now connected! Start the conversation.</p>
+                    <p>You're connected. Say hello when you're ready.</p>
                 </div>
             </div>
             
@@ -171,19 +179,19 @@
     <!-- Disconnected Screen -->
     <div id="disconnected-screen" class="screen">
         <div class="container">
-            <div class="status-icon">
-                <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                    <circle cx="40" cy="40" r="35" stroke="#EF4444" stroke-width="3" fill="none"/>
-                    <path d="M28 28L52 52M52 28L28 52" stroke="#EF4444" stroke-width="3" stroke-linecap="round"/>
-                </svg>
-            </div>
+            <svg class="passing-line passing-line--goodbye" viewBox="0 0 120 24" aria-hidden="true" focusable="false">
+                <path class="passing-line__path" d="M4 12 C25 12 40 4 60 12 S95 20 116 12"/>
+                <circle class="passing-line__point" cx="4" cy="12" r="2"/>
+                <circle class="passing-line__point" cx="116" cy="12" r="2"/>
+                <circle class="passing-line__meeting" cx="60" cy="12" r="2.5"/>
+            </svg>
             <h2 class="status-title">Chat Ended</h2>
             <p class="status-message" id="disconnect-message">Your partner left the chat.</p>
             
             <!-- Referral Share Section -->
             <div class="referral-section">
-                <h3 class="referral-title">💬 Enjoyed your Sulyap?</h3>
-                <p class="referral-subtitle">Invite a friend to try it too!</p>
+                <h3 class="referral-title">Pass the moment along?</h3>
+                <p class="referral-subtitle">Share Sulyap with someone you know.</p>
                 <div class="referral-link-container">
                     <input type="text" id="referral-link-input" class="referral-link-input" readonly value="https://sulyap.onrender.com">
                     <button id="copy-link-btn" class="btn-copy" title="Copy link">
@@ -214,6 +222,7 @@
             
             <button id="new-chat-btn" class="btn btn-primary" aria-label="Start a new chat conversation">Start New Chat</button>
             <button id="feedback-btn" class="btn btn-secondary" aria-label="Provide feedback about your experience">Give Feedback</button>
+            <button id="home-btn" class="btn btn-secondary" aria-label="Return to the Sulyap home screen">Back to Home</button>
         </div>
     </div>
 
@@ -221,13 +230,12 @@
     <div id="exit-modal" class="modal">
         <div class="modal-content">
             <div class="modal-character">
-                <div class="sad-face">
-                    <div class="eyes">
-                        <span class="eye">•́</span>
-                        <span class="eye">•̀</span>
-                    </div>
-                    <div class="mouth">⌓</div>
-                </div>
+                <svg class="passing-line passing-line--ending" viewBox="0 0 120 24" aria-hidden="true" focusable="false">
+                    <path class="passing-line__path" d="M4 12 C25 12 40 4 60 12 S95 20 116 12"/>
+                    <circle class="passing-line__point" cx="4" cy="12" r="2"/>
+                    <circle class="passing-line__point" cx="116" cy="12" r="2"/>
+                    <circle class="passing-line__meeting" cx="60" cy="12" r="2.5"/>
+                </svg>
                 <p class="modal-message">Aalis ka na?</p>
             </div>
             <h3 class="modal-title">End this Sulyap?</h3>
@@ -247,18 +255,25 @@
                     <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
             </button>
-            <h3 class="modal-title">💭 Share Your Sulyap</h3>
-            <p class="modal-subtitle">Help us improve your experience</p>
+            <svg class="passing-line passing-line--feedback" viewBox="0 0 120 24" aria-hidden="true" focusable="false">
+                <path class="passing-line__path" d="M4 12 C25 12 40 4 60 12 S95 20 116 12"/>
+                <circle class="passing-line__point" cx="4" cy="12" r="2"/>
+                <circle class="passing-line__point" cx="116" cy="12" r="2"/>
+                <circle class="passing-line__meeting" cx="60" cy="12" r="2.5"/>
+            </svg>
+            <h3 class="modal-title">Leave a note?</h3>
+            <p class="modal-subtitle">Your feedback helps us make the next conversation better.</p>
             
             <div class="rating-section">
-                <p class="rating-label">How was your experience?</p>
-                <div class="star-rating" id="star-rating">
-                    <span class="star" data-rating="1">⭐</span>
-                    <span class="star" data-rating="2">⭐</span>
-                    <span class="star" data-rating="3">⭐</span>
-                    <span class="star" data-rating="4">⭐</span>
-                    <span class="star" data-rating="5">⭐</span>
+                <p class="rating-label">How did this conversation feel?</p>
+                <div class="star-rating" id="star-rating" role="radiogroup" aria-label="Rate this conversation from 1 to 5">
+                    <button type="button" class="star" role="radio" aria-checked="false" aria-label="1 out of 5" data-rating="1">1</button>
+                    <button type="button" class="star" role="radio" aria-checked="false" aria-label="2 out of 5" data-rating="2">2</button>
+                    <button type="button" class="star" role="radio" aria-checked="false" aria-label="3 out of 5" data-rating="3" tabindex="0">3</button>
+                    <button type="button" class="star" role="radio" aria-checked="false" aria-label="4 out of 5" data-rating="4">4</button>
+                    <button type="button" class="star" role="radio" aria-checked="false" aria-label="5 out of 5" data-rating="5">5</button>
                 </div>
+                <div class="rating-ends" aria-hidden="true"><span>Not for me</span><span>Worth the moment</span></div>
             </div>
             
             <div class="feedback-form">
@@ -284,7 +299,12 @@
     <div id="thankyou-modal" class="modal">
         <div class="modal-content thankyou-modal-content">
             <div class="thankyou-animation">
-                <div class="heart-emoji">💖</div>
+            <svg class="passing-line passing-line--thanks" viewBox="0 0 120 24" aria-hidden="true" focusable="false">
+                <path class="passing-line__path" d="M4 12 C25 12 40 4 60 12 S95 20 116 12"/>
+                <circle class="passing-line__point" cx="4" cy="12" r="2"/>
+                <circle class="passing-line__point" cx="116" cy="12" r="2"/>
+                <circle class="passing-line__meeting" cx="60" cy="12" r="2.5"/>
+            </svg>
             </div>
             <h3 class="modal-title">Salamat sa iyong Sulyap!</h3>
             <p class="modal-subtitle">Your feedback helps improve our experience</p>

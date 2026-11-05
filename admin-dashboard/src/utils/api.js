@@ -1,13 +1,24 @@
+import { clearAdminToken, getAdminToken } from './auth'
+
 // API utility for making requests to the backend
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+
+async function authorizedFetch(url, options = {}) {
+  const response = await fetch(url, options);
+  if (response.status === 401) {
+    clearAdminToken();
+    window.dispatchEvent(new Event('admin-auth-expired'));
+  }
+  return response;
+}
 
 export const api = {
   // Get admin statistics
   async getStats() {
     try {
-      const response = await fetch(`${API_BASE}/api/admin/stats`, {
+      const response = await authorizedFetch(`${API_BASE}/api/admin/stats`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${getAdminToken()}`
         }
       });
       return await response.json();
@@ -20,9 +31,9 @@ export const api = {
   // Get feedback list
   async getFeedback() {
     try {
-      const response = await fetch(`${API_BASE}/api/admin/feedback`, {
+      const response = await authorizedFetch(`${API_BASE}/api/admin/feedback`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${getAdminToken()}`
         }
       });
       return await response.json();
@@ -35,11 +46,11 @@ export const api = {
   // Update feedback status
   async updateFeedback(id, updates) {
     try {
-      const response = await fetch(`${API_BASE}/api/admin/feedback/${id}`, {
+      const response = await authorizedFetch(`${API_BASE}/api/admin/feedback/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${getAdminToken()}`
         },
         body: JSON.stringify(updates)
       });
@@ -53,10 +64,10 @@ export const api = {
   // Delete feedback
   async deleteFeedback(id) {
     try {
-      const response = await fetch(`${API_BASE}/api/admin/feedback/${id}`, {
+      const response = await authorizedFetch(`${API_BASE}/api/admin/feedback/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${getAdminToken()}`
         }
       });
       return await response.json();
@@ -70,9 +81,9 @@ export const api = {
   async getLogs(filters = {}) {
     try {
       const params = new URLSearchParams(filters);
-      const response = await fetch(`${API_BASE}/api/admin/logs?${params}`, {
+      const response = await authorizedFetch(`${API_BASE}/api/admin/logs?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${getAdminToken()}`
         }
       });
       return await response.json();
@@ -82,12 +93,25 @@ export const api = {
     }
   },
 
+  async getHealth() {
+    try {
+      const response = await authorizedFetch(`${API_BASE}/api/admin/health`, {
+        headers: { 'Authorization': `Bearer ${getAdminToken()}` }
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching server health:', error);
+      return null;
+    }
+  },
+
   // Export data
   async exportData(type) {
     try {
-      const response = await fetch(`${API_BASE}/api/admin/export/${type}`, {
+      const response = await authorizedFetch(`${API_BASE}/api/admin/export/${type}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${getAdminToken()}`
         }
       });
       const blob = await response.blob();
@@ -118,6 +142,17 @@ export const api = {
     } catch (error) {
       console.error('Error logging in:', error);
       return { error: 'Login failed' };
+    }
+  },
+
+  async logout() {
+    try {
+      await authorizedFetch(`${API_BASE}/api/admin/session`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${getAdminToken()}` }
+      });
+    } catch (error) {
+      console.error('Error ending admin session:', error);
     }
   }
 };

@@ -27,8 +27,9 @@ import {
 } from 'recharts'
 import { api } from '../utils/api'
 import { socketService } from '../utils/socket'
+import { getAdminToken } from '../utils/auth'
 
-const COLORS = ['#8b5cf6', '#d946ef', '#06b6d4', '#10b981', '#f59e0b']
+const COLORS = ['#355b45', '#78977f', '#ab8061', '#c9a88b', '#9b9d8b']
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -92,7 +93,7 @@ export default function Dashboard() {
     loadStats()
     
     // Connect to real-time updates
-    const token = localStorage.getItem('adminToken')
+    const token = getAdminToken()
     socketService.connect(token)
 
     // Listen for connection status changes
@@ -266,7 +267,7 @@ export default function Dashboard() {
     }
 
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
         <div className={`w-2 h-2 rounded-full ${getStatusColor()} ${connectionStatus === 'connected' ? 'animate-pulse' : ''}`}></div>
         <span className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
           {getIcon()}
@@ -289,18 +290,18 @@ export default function Dashboard() {
     
     return (
       <div className="flex items-center gap-1.5">
-        <div className={`w-2 h-2 rounded-full bg-green-500 ${pulse ? 'animate-ping' : 'animate-pulse'}`}></div>
-        <span className="text-xs font-medium text-green-600 dark:text-green-400">LIVE</span>
+        <div className={`w-1.5 h-1.5 rounded-full bg-primary-600 ${pulse ? '' : ''}`}></div>
+        <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-primary-700 dark:text-primary-300">Live</span>
       </div>
     )
   }
 
   const StatCard = ({ title, value, change, icon: Icon, color }) => (
-    <div className="stat-card transition-all duration-300 hover:scale-105">
+    <div className="stat-card">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-          <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white transition-all duration-300">
+          <p className="mt-2 text-3xl font-medium tracking-tight text-gray-900 dark:text-white">
             {value}
           </p>
           {change && (
@@ -310,8 +311,8 @@ export default function Dashboard() {
             </p>
           )}
         </div>
-        <div className={`p-3 rounded-xl ${color} transition-transform duration-300`}>
-          <Icon className="w-6 h-6 text-white" />
+        <div className="flex h-9 w-9 items-center justify-center border border-primary-200 text-primary-700 dark:text-primary-300">
+          <Icon className="w-4 h-4" />
         </div>
       </div>
     </div>
@@ -326,13 +327,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header with Live Indicator */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="mb-1 text-[11px] uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">Overview</p>
+          <h1 className="font-editorial text-3xl font-normal tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Welcome back! Here's what's happening with Sulyap today.
+            A live view of conversations on Sulyap.
           </p>
         </div>
         <ConnectionIndicator />
@@ -343,30 +345,22 @@ export default function Dashboard() {
         <StatCard
           title="Online Users"
           value={stats.onlineUsers}
-          change={12}
           icon={Users}
-          color="bg-gradient-to-br from-primary-500 to-primary-600"
         />
         <StatCard
           title="Active Chats"
           value={stats.activeChats}
-          change={8}
           icon={MessageSquare}
-          color="bg-gradient-to-br from-accent-500 to-accent-600"
         />
         <StatCard
           title="Avg. Session"
           value={`${stats.avgSessionDuration} min`}
-          change={-5}
           icon={Clock}
-          color="bg-gradient-to-br from-blue-500 to-blue-600"
         />
         <StatCard
           title="Users (24h)"
           value={stats.users24h}
-          change={15}
           icon={Activity}
-          color="bg-gradient-to-br from-green-500 to-green-600"
         />
       </div>
 
@@ -405,9 +399,9 @@ export default function Dashboard() {
               <Line 
                 type="monotone" 
                 dataKey="users" 
-                stroke="#8b5cf6" 
+                stroke="#547663" 
                 strokeWidth={2}
-                dot={{ fill: '#8b5cf6', r: 4 }}
+                dot={{ fill: '#547663', r: 3 }}
                 activeDot={{ r: 6 }}
                 animationDuration={300}
                 animationEasing="ease-in-out"
@@ -434,7 +428,7 @@ export default function Dashboard() {
                 labelLine={false}
                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                 outerRadius={80}
-                fill="#8884d8"
+              fill="#547663"
                 dataKey="value"
                 animationDuration={300}
                 animationEasing="ease-out"
@@ -489,8 +483,8 @@ export default function Dashboard() {
             <Legend />
             <Bar 
               dataKey="messages" 
-              fill="#d946ef" 
-              radius={[8, 8, 0, 0]}
+              fill="#78977f" 
+              radius={[2, 2, 0, 0]}
               animationDuration={300}
               animationEasing="ease-in-out"
               isAnimationActive={true}
@@ -503,8 +497,8 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="card">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500">
-              <Zap className="w-6 h-6 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center border border-primary-200 text-primary-700 dark:text-primary-300">
+              <Zap className="w-4 h-4" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Messages</p>
@@ -515,8 +509,8 @@ export default function Dashboard() {
 
         <div className="card">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500">
-              <MessageSquare className="w-6 h-6 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center border border-primary-200 text-primary-700 dark:text-primary-300">
+              <MessageSquare className="w-4 h-4" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Msgs/Chat</p>
@@ -527,8 +521,8 @@ export default function Dashboard() {
 
         <div className="card">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-pink-500">
-              <Activity className="w-6 h-6 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center border border-primary-200 text-primary-700 dark:text-primary-300">
+              <Activity className="w-4 h-4" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Disconnect Rate</p>

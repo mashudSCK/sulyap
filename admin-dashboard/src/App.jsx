@@ -8,17 +8,21 @@ import Feedback from './pages/Feedback'
 import SystemLogs from './pages/SystemLogs'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
+import { socketService } from './utils/socket'
+import { api } from './utils/api'
+import { clearAdminToken, setAdminToken } from './utils/auth'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
-    // Check if user is already logged in
-    const authToken = localStorage.getItem('adminToken')
-    if (authToken) {
-      setIsAuthenticated(true)
+    const expireSession = () => {
+      socketService.disconnect()
+      clearAdminToken()
+      setIsAuthenticated(false)
     }
+    window.addEventListener('admin-auth-expired', expireSession)
 
     // Check dark mode preference
     const darkMode = localStorage.getItem('darkMode') === 'true'
@@ -26,15 +30,19 @@ function App() {
     if (darkMode) {
       document.documentElement.classList.add('dark')
     }
+
+    return () => window.removeEventListener('admin-auth-expired', expireSession)
   }, [])
 
   const handleLogin = (token) => {
-    localStorage.setItem('adminToken', token)
+    setAdminToken(token)
     setIsAuthenticated(true)
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('adminToken')
+    api.logout()
+    socketService.disconnect()
+    clearAdminToken()
     setIsAuthenticated(false)
   }
 

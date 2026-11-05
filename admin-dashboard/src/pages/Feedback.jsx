@@ -3,6 +3,7 @@ import { Star, Check, Pin, Trash2, Download, MessageCircle, Bell } from 'lucide-
 import { api } from '../utils/api'
 import { socketService } from '../utils/socket'
 import { format } from 'date-fns'
+import { getAdminToken } from '../utils/auth'
 
 export default function Feedback() {
   const [feedbackList, setFeedbackList] = useState([])
@@ -14,7 +15,7 @@ export default function Feedback() {
     loadFeedback()
     
     // Connect to real-time feedback updates
-    const token = localStorage.getItem('adminToken')
+    const token = getAdminToken()
     socketService.connect(token)
     
     // Listen for new feedback submissions
@@ -115,7 +116,7 @@ export default function Feedback() {
       
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Feedback</h1>
+          <h1 className="font-editorial text-3xl font-normal tracking-tight text-gray-900 dark:text-white">Feedback</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             User feedback and suggestions
           </p>
@@ -133,8 +134,8 @@ export default function Feedback() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <div className="card">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600">
-              <MessageCircle className="w-6 h-6 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center border border-primary-200 text-primary-700 dark:text-primary-300">
+              <MessageCircle className="w-4 h-4" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total</p>
@@ -145,8 +146,8 @@ export default function Feedback() {
 
         <div className="card">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-              <Check className="w-6 h-6 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center border border-primary-200 text-primary-700 dark:text-primary-300">
+              <Check className="w-4 h-4" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Read</p>
@@ -159,8 +160,8 @@ export default function Feedback() {
 
         <div className="card">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600">
-              <Pin className="w-6 h-6 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center border border-primary-200 text-primary-700 dark:text-primary-300">
+              <Pin className="w-4 h-4" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pinned</p>
@@ -173,8 +174,8 @@ export default function Feedback() {
 
         <div className="card">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-              <Star className="w-6 h-6 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center border border-primary-200 text-primary-700 dark:text-primary-300">
+              <Star className="w-4 h-4" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Rating</p>

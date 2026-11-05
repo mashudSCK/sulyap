@@ -80,8 +80,8 @@ Built with Node.js, Express, Socket.IO, and vanilla JavaScript.
    npm run dev
    ```
    Navigate to `http://localhost:3001` and login with:
-   - Username: `admin`
-   - Password: `admin123`
+   - Username: `admin` (development only)
+   - Password: `admin123` (development only)
 
 ## Admin Dashboard
 
@@ -96,15 +96,19 @@ Access the real-time monitoring dashboard at `http://localhost:3001`
 - **Dark Mode**: Toggle between light and dark themes
 - **Connection Status**: Live indicator with auto-reconnection
 
-### Default Credentials:
+### Local Development Credentials:
 - Username: `admin`
 - Password: `admin123`
 
-**Change these in production!** Set environment variables:
+These defaults are available only outside production. Production exits on startup unless both credentials are set. Render reads these values from its environment configuration:
+
 ```bash
 ADMIN_USERNAME=your_username
 ADMIN_PASSWORD=your_secure_password
+ADMIN_ORIGIN=https://your-admin-dashboard.example
 ```
+
+Admin access tokens expire after 12 hours and are held in server memory; dashboard tokens stay in browser memory, so a page refresh or server restart requires signing in again. Set `ADMIN_ORIGIN` to the exact dashboard origin when it is hosted on a separate domain.
 
 ## Deploy to Render.com (FREE)
 

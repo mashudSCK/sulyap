@@ -26,19 +26,20 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-accent-50 dark:from-gray-900 dark:to-gray-800 px-4">
+    <div className="admin-shell min-h-screen flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl mb-4">
-            <span className="text-white font-bold text-2xl">S</span>
+          <div className="inline-flex items-center justify-center w-14 h-14 border border-primary-200 text-primary-700 dark:text-primary-300 mb-4">
+            <span className="font-editorial text-3xl italic">S</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Sulyap Admin</h1>
+          <h1 className="font-editorial text-4xl font-normal tracking-tight text-gray-900 dark:text-white">Sulyap</h1>
+          <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">Admin</p>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Sign in to your dashboard</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+        <div className="rounded-sm border border-gray-200 bg-white p-8 dark:border-gray-700 dark:bg-gray-800">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
@@ -79,7 +80,7 @@ export default function Login({ onLogin }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary w-full py-3"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
@@ -87,14 +88,14 @@ export default function Login({ onLogin }) {
 
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Default: admin / admin123
+              Local development only: admin / admin123
             </p>
           </div>
         </div>
 
         <div className="mt-8 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Built with ❤️ for Sulyap
+            <p className="font-editorial text-sm italic text-gray-600 dark:text-gray-400">
+            A little space to talk
           </p>
         </div>
       </div>

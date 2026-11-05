@@ -8,10 +8,11 @@ export default function SystemLogs() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all') // all, error, warning, info
   const [serverStatus, setServerStatus] = useState({
-    online: true,
-    uptime: 0,
-    memory: 0,
-    cpu: 0
+    online: false,
+    uptimeSeconds: 0,
+    memoryPercent: 0,
+    loadAverage: 0,
+    cpuCount: 1
   })
 
   useEffect(() => {
@@ -34,13 +35,16 @@ export default function SystemLogs() {
   }
 
   const loadServerStatus = async () => {
-    // Mock data - replace with real API
-    setServerStatus({
-      online: true,
-      uptime: 99.8,
-      memory: 45,
-      cpu: 23
-    })
+    const health = await api.getHealth()
+    if (health) setServerStatus(health)
+    else setServerStatus(current => ({ ...current, online: false }))
+  }
+
+  const formatUptime = (seconds) => {
+    const days = Math.floor(seconds / 86400)
+    const hours = Math.floor((seconds % 86400) / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    return `${days}d ${hours}h ${minutes}m`
   }
 
   const handleExport = () => {
@@ -81,7 +85,7 @@ export default function SystemLogs() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">System Health & Logs</h1>
+          <h1 className="font-editorial text-3xl font-normal tracking-tight text-gray-900 dark:text-white">System Health & Logs</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Monitor server status and system logs
           </p>
@@ -105,18 +109,18 @@ export default function SystemLogs() {
                 {serverStatus.online ? 'Online' : 'Offline'}
               </p>
             </div>
-            <div className={`w-3 h-3 rounded-full ${serverStatus.online ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+            <div className={`w-2 h-2 rounded-full ${serverStatus.online ? 'bg-green-600' : 'bg-red-600'}`} />
           </div>
         </div>
 
         <div className="card">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-              <Activity className="w-6 h-6 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center border border-primary-200 text-primary-700 dark:text-primary-300">
+              <Activity className="w-4 h-4" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Uptime</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{serverStatus.uptime}%</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Process Uptime</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{formatUptime(serverStatus.uptimeSeconds)}</p>
             </div>
           </div>
         </div>
@@ -127,12 +131,12 @@ export default function SystemLogs() {
             <div className="flex items-center">
               <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-primary-500 to-accent-500"
-                  style={{ width: `${serverStatus.memory}%` }}
+                  className="h-full bg-primary-600"
+                  style={{ width: `${serverStatus.memoryPercent}%` }}
                 />
               </div>
               <span className="ml-3 text-sm font-semibold text-gray-900 dark:text-white">
-                {serverStatus.memory}%
+                {serverStatus.memoryPercent}%
               </span>
             </div>
           </div>
@@ -140,16 +144,16 @@ export default function SystemLogs() {
 
         <div className="card">
           <div>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">CPU Usage</p>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">1m Load Average</p>
             <div className="flex items-center">
               <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-green-500 to-emerald-500"
-                  style={{ width: `${serverStatus.cpu}%` }}
+                  className="h-full bg-primary-500"
+                  style={{ width: `${Math.min((serverStatus.loadAverage / serverStatus.cpuCount) * 100, 100)}%` }}
                 />
               </div>
               <span className="ml-3 text-sm font-semibold text-gray-900 dark:text-white">
-                {serverStatus.cpu}%
+                {serverStatus.loadAverage.toFixed(2)}
               </span>
             </div>
           </div>

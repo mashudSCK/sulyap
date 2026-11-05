@@ -55,12 +55,12 @@ npm run build
 
 The built files will be in the `dist` directory.
 
-## 🔑 Default Credentials
+## 🔑 Local Development Credentials
 
 - **Username**: `admin`
 - **Password**: `admin123`
 
-⚠️ **Important**: Change these credentials in production!
+These credentials are development defaults only. Production must configure `ADMIN_USERNAME` and `ADMIN_PASSWORD` on the backend. Admin sessions expire after 12 hours; tokens stay in browser memory and require signing in again after a page refresh or backend restart.
 
 ## 📁 Project Structure
 
@@ -198,11 +198,10 @@ The dashboard uses [Recharts](https://recharts.org/) for data visualization:
 
 ## 🔒 Security
 
-- JWT token-based authentication
-- Secure password storage (bcrypt recommended)
-- HTTPS in production
-- Rate limiting on API endpoints
-- CORS configuration
+- Expiring opaque admin sessions, held in backend memory and cleared on restart
+- Protected admin HTTP endpoints and Socket.IO namespace
+- Login attempt throttling and backend payload validation
+- HTTPS in production; configure the backend's `ADMIN_ORIGIN` to the dashboard origin
 
 ## 🚢 Deployment
 

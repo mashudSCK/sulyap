@@ -31,6 +31,8 @@ This will install:
 
 ## Step 2: Update Backend Server
 
+> **Obsolete example below:** the backend already implements these routes. Do not copy the example into the server; it contains unsigned tokens and unauthenticated admin endpoints. See `backend/auth.js` and `backend/server.js` for the current implementation.
+
 Add admin API endpoints to `backend/server.js`:
 
 ```javascript
@@ -326,9 +328,11 @@ The dashboard will open at: **http://localhost:3001**
 
 ## Step 4: Login
 
-Use default credentials:
+For local development only, use the default credentials:
 - **Username**: `admin`
 - **Password**: `admin123`
+
+Production must configure `ADMIN_USERNAME` and `ADMIN_PASSWORD` on the backend. Admin tokens expire after 12 hours and stay in browser memory, so refreshing the page or restarting the backend requires signing in again.
 
 ## Step 5: Build for Production
 
@@ -401,22 +405,22 @@ npm install
 
 1. ✅ Customize colors in `tailwind.config.js`
 2. ✅ Add real-time WebSocket updates
-3. ✅ Implement proper JWT authentication
+3. ✅ Require expiring admin sessions for API and admin sockets
 4. ✅ Add more detailed analytics
 5. ✅ Set up proper logging system
 6. ✅ Add email notifications
-7. ✅ Implement rate limiting
+7. ✅ Throttle admin login attempts
 8. ✅ Add database for persistent storage
 
 ## Security Checklist
 
-- [ ] Change default admin credentials
-- [ ] Use environment variables for sensitive data
-- [ ] Implement proper JWT with expiration
-- [ ] Add rate limiting on API endpoints
+- [ ] Configure production admin credentials in the hosting environment
+- [x] Require bearer sessions on protected admin routes
+- [x] Require admin authentication for the admin Socket.IO namespace
+- [x] Throttle admin login attempts
 - [ ] Use HTTPS in production
 - [ ] Implement CSRF protection
-- [ ] Add input validation and sanitization
+- [x] Validate chat and feedback payloads
 - [ ] Set up proper logging and monitoring
 - [ ] Regular security audits
 
